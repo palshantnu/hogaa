@@ -1,0 +1,95 @@
+<div id="layoutSidenav_nav">
+  <nav class="sb-sidenav accordion sb-sidenav-light" id="sidenavAccordion">
+    <div class="sb-sidenav-menu">
+      <div class="nav">
+
+        <!-- Dashboard -->
+        <div class="sb-sidenav-menu-heading">MAIN</div>
+        <a class="nav-link <%= title === 'Dashboard' ? 'active' : '' %>" href="/admin/dashboard">
+          <div class="sb-nav-link-icon"><i class="fas fa-tachometer-alt"></i></div>
+          Dashboard
+        </a>
+        <div class="sb-sidenav-menu-heading">Banner</div>
+        <a class="nav-link" href="/admin/banners">
+          <div class="sb-nav-link-icon"><i class="fas fa-image"></i></div>
+          Banners
+        </a>
+        <!-- Store Management -->
+        <div class="sb-sidenav-menu-heading">STORE</div>
+
+        <a class="nav-link <%= title && title.includes('Category') ? 'active' : '' %>" href="/admin/categories">
+          <div class="sb-nav-link-icon"><i class="fas fa-list"></i></div>
+          Categories
+        </a>
+
+        <a class="nav-link <%= title && title.includes('Product') ? 'active' : '' %>" href="/admin/products">
+          <div class="sb-nav-link-icon"><i class="fas fa-box"></i></div>
+          Products
+        </a>
+        <a class="nav-link <%= title && title.includes('Attributes') ? 'active' : '' %>"
+          href="/admin/products/attributes">
+          <div class="sb-nav-link-icon"><i class="fas fa-tag"></i></div>
+          Attributes
+        </a>
+
+        <!-- Order Management -->
+        <div class="sb-sidenav-menu-heading">ORDERS</div>
+
+        <a class="nav-link <%= title && title.includes('Order') ? 'active' : '' %>" href="/admin/orders">
+          <div class="sb-nav-link-icon"><i class="fas fa-shopping-cart"></i></div>
+          All Orders
+        </a>
+
+        <a class="nav-link" href="/admin/orders?status=pending">
+          <div class="sb-nav-link-icon"><i class="fas fa-clock"></i></div>
+          Pending Orders
+        </a>
+
+        <a class="nav-link" href="/admin/orders?status=processing">
+          <div class="sb-nav-link-icon"><i class="fas fa-spinner"></i></div>
+          Processing Orders
+        </a>
+
+        <a class="nav-link" href="/admin/orders?status=delivered">
+          <div class="sb-nav-link-icon"><i class="fas fa-check-circle"></i></div>
+          Delivered Orders
+        </a>
+
+        <!-- Customers -->
+        <div class="sb-sidenav-menu-heading">CUSTOMERS</div>
+
+        <a class="nav-link <%= title && title.includes('User') ? 'active' : '' %>" href="/admin/users">
+          <div class="sb-nav-link-icon"><i class="fas fa-users"></i></div>
+          All Customers
+        </a>
+        <div class="sb-sidenav-menu-heading">PAGES</div>
+        <a class="nav-link <%= title && title.includes('Page') ? 'active' : '' %>" href="/admin/pages">
+          <div class="sb-nav-link-icon"><i class="fas fa-file-alt"></i></div>
+          Pages
+        </a>
+
+        <div class="sb-sidenav-menu-heading">SETTINGS</div>
+        <a class="nav-link <%= title && title.includes('Settings') ? 'active' : '' %>" href="/admin/settings">
+          <div class="sb-nav-link-icon"><i class="fas fa-cog"></i></div>
+          Site Settings
+        </a>
+
+      </div>
+    </div>
+
+    <div class="sb-sidenav-footer">
+      <div class="small">Logged in as:</div>
+      <strong>
+        <%= admin && admin.name ? admin.name : 'Guest' %>
+      </strong>
+      <div class="small text-muted mt-1">
+        <i class="fas fa-tag"></i> Role: <%= admin && admin.role ? admin.role : 'Unknown' %>
+      </div>
+      <div class="mt-2">
+        <a href="/admin/auth/logout" class="btn btn-sm btn-danger w-100 mt-2">
+          <i class="fas fa-sign-out-alt"></i> Logout
+        </a>
+      </div>
+    </div>
+  </nav>
+</div>

@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %> | Admin Panel</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="container-fluid px-4 py-4">
+        <div class="d-flex align-items-center mb-4">
+            <a href="/admin/products/attributes" class="btn btn-secondary me-3">
+                <i class="fas fa-arrow-left me-1"></i> Back
+            </a>
+            <h4><i class="fas fa-tag text-primary me-2"></i><%= title %></h4>
+        </div>
+
+        <div class="card">
+            <div class="card-body">
+                <form action="/admin/products/attributes/<%= attribute ? 'edit/' + attribute.id : 'add' %>" method="POST">
+                    <div class="row">
+                        <div class="col-md-12 mb-3">
+                            <label class="form-label">Attribute Name <span class="required-star">*</span></label>
+                            <input type="text" name="name" class="form-control" value="<%= attribute ? attribute.name : '' %>" required>
+                        </div>
+                        
+                        <!-- <div class="col-md-6 mb-3">
+                            <label class="form-label">Type</label>
+                            <select name="type" class="form-select">
+                                <option value="select" <%= attribute && attribute.type === 'select' ? 'selected' : '' %>>Select</option>
+                                <option value="color" <%= attribute && attribute.type === 'color' ? 'selected' : '' %>>Color</option>
+                                <option value="size" <%= attribute && attribute.type === 'size' ? 'selected' : '' %>>Size</option>
+                            </select>
+                        </div> -->
+                        
+                        <div class="col-md-6 mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="is_global" value="true" <%= attribute && attribute.is_global ? 'checked' : '' %>>
+                                <label class="form-check-label">Global Attribute (available for all products)</label>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Status</label>
+                            <select name="status" class="form-select">
+                                <option value="active" <%= attribute && attribute.status === 'active' ? 'selected' : '' %>>Active</option>
+                                <option value="inactive" <%= attribute && attribute.status === 'inactive' ? 'selected' : '' %>>Inactive</option>
+                            </select>
+                        </div>
+                        
+                        <div class="col-md-12 mb-3">
+                            <label class="form-label">Attribute Values (comma separated)</label>
+                            <textarea name="values" class="form-control" rows="3" placeholder="e.g., Red, Blue, Green or S, M, L, XL"><%= attribute && attribute.values ? attribute.values.map(v => v.value).join(', ') : '' %></textarea>
+                            <small class="text-muted">Enter values separated by commas. For colors, you can add color codes after saving.</small>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-4">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-2"></i>Save Attribute
+                        </button>
+                        <a href="/admin/products/attributes" class="btn btn-secondary ms-2">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

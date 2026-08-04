@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>E-Commerce Dashboard</title>
+
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- DataTables -->
+    <link href="https://cdn.datatables.net/1.13.4/css/dataTables.bootstrap5.min.css" rel="stylesheet">
+    <link href="https://cdn.datatables.net/buttons/2.4.1/css/buttons.bootstrap5.min.css" rel="stylesheet">
+    
+    <style>
+        * { font-family: 'Inter', sans-serif; }
+        body { background: #f8f9fc; }
+        
+        .stat-card {
+            border: none;
+            border-radius: 20px;
+            transition: all 0.3s ease;
+            overflow: hidden;
+            position: relative;
+            cursor: pointer;
+        }
+        .stat-card:hover { transform: translateY(-5px); box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
+        .stat-card .card-body { padding: 1.5rem; }
+        .stat-icon {
+            position: absolute;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 60px;
+            opacity: 0.2;
+        }
+        .stat-number { font-size: 2.5rem; font-weight: 800; margin-bottom: 0; }
+        .stat-label { font-size: 0.9rem; font-weight: 500; margin-bottom: 0; opacity: 0.9; }
+        
+        .card-header {
+            background: white;
+            border-bottom: 2px solid #f0f0f0;
+            font-weight: 600;
+            padding: 1rem 1.5rem;
+        }
+        .card-header i { margin-right: 8px; color: #4e73df; }
+        
+        .table { font-size: 14px; }
+        .table thead th {
+            background: #f8f9fc;
+            border-bottom: 2px solid #e3e6f0;
+            font-weight: 600;
+            color: #4e73df;
+        }
+        .table tbody tr:hover { background: #f8f9fc; transition: all 0.2s; }
+        
+        .badge-stock { padding: 5px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+        .badge-instock { background: #d4edda; color: #155724; }
+        .badge-lowstock { background: #fff3cd; color: #856404; }
+        .badge-outstock { background: #f8d7da; color: #721c24; }
+        
+        .badge-status { padding: 5px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+        .badge-pending { background: #fff3cd; color: #856404; }
+        .badge-delivered { background: #d4edda; color: #155724; }
+        .badge-cancelled { background: #f8d7da; color: #721c24; }
+        .badge-processing { background: #cce5ff; color: #004085; }
+        .badge-active { background: #d4edda; color: #155724; }
+        .badge-inactive { background: #f8d7da; color: #721c24; }
+        .badge-variable { background: #e7e7ff; color: #4e73df; }
+        
+        .product-img { width: 50px; height: 50px; object-fit: cover; border-radius: 10px; }
+        
+        .welcome-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .filter-bar {
+            background: white;
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 20px;
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        .date-filter {
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 8px 15px;
+        }
+        .export-btn {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+        .dt-buttons { margin-bottom: 15px; }
+    </style>
+</head>
+
+<body>
+
+<div class="container-fluid px-4 py-4">
+    
+    <!-- Welcome Section -->
+    <div class="welcome-card p-4 mb-4">
+        <div class="row align-items-center">
+            <div class="col">
+                <h2 class="mb-2">Welcome back, <%= admin.name %>! 👋</h2>
+                <p class="mb-0 opacity-75">Here's what's happening with your store today.</p>
+            </div>
+            <div class="col-auto">
+                <i class="fas fa-chart-line fa-3x opacity-50"></i>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-xl-3 col-md-6 mb-3">
+            <div class="card stat-card bg-primary text-white">
+                <div class="card-body">
+                    <div class="stat-icon"><i class="fas fa-shopping-cart"></i></div>
+                    <div class="stat-number"><%= stats.totalOrders %></div>
+                    <div class="stat-label">Total Orders</div>
+                    <small class="opacity-75">Pending: <%= stats.pendingOrders %> | Processing: <%= stats.processingOrders %></small>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-xl-3 col-md-6 mb-3">
+            <div class="card stat-card bg-success text-white">
+                <div class="card-body">
+                    <div class="stat-icon"><i class="fas fa-box"></i></div>
+                    <div class="stat-number"><%= stats.totalProducts %></div>
+                    <div class="stat-label">Total Products</div>
+                    <small class="opacity-75">Categories: <%= stats.totalCategories %></small>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-xl-3 col-md-6 mb-3">
+            <div class="card stat-card bg-info text-white">
+                <div class="card-body">
+                    <div class="stat-icon"><i class="fas fa-users"></i></div>
+                    <div class="stat-number"><%= stats.totalUsers %></div>
+                    <div class="stat-label">Total Customers</div>
+                    <small class="opacity-75">Registered Users</small>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-xl-3 col-md-6 mb-3">
+            <div class="card stat-card bg-warning text-white">
+                <div class="card-body">
+                    <div class="stat-icon"><i class="fas fa-rupee-sign"></i></div>
+                    <div class="stat-number">₹<%= stats.totalRevenue.toLocaleString() %></div>
+                    <div class="stat-label">Total Revenue</div>
+                    <small class="opacity-75">Today: ₹<%= stats.todaySales.toLocaleString() %></small>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Global Date Filter Bar -->
+    <div class="filter-bar">
+        <div>
+            <label class="me-2">Date Range:</label>
+            <select id="globalDateFilter" class="date-filter">
+                <option value="all">All Time</option>
+                <option value="today">Today</option>
+                <option value="week">Last 7 Days</option>
+                <option value="month">Last 30 Days</option>
+                <option value="this_month">This Month</option>
+                <option value="last_month">Last Month</option>
+                <option value="custom">Custom Range</option>
+            </select>
+        </div>
+        <div id="customDateRange" style="display: none;">
+            <input type="date" id="startDate" class="date-filter" placeholder="Start Date">
+            <input type="date" id="endDate" class="date-filter" placeholder="End Date">
+            <button class="btn btn-sm btn-primary" onclick="applyCustomDate()">Apply</button>
+        </div>
+        <button class="export-btn" onclick="exportAllTables()">
+            <i class="fas fa-file-excel me-2"></i>Export All
+        </button>
+    </div>
+    
+    <!-- Recent Orders Table -->
+    <div class="card mt-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <span><i class="fas fa-shopping-cart"></i> Recent Orders</span>
+            <div>
+                <input type="text" id="ordersSearch" class="form-control form-control-sm" placeholder="Search orders..." style="width: 200px;">
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table id="ordersTable" class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Order ID</th>
+                            <th>Customer Name</th>
+                            <th>Mobile</th>
+                            <th>Total Amount</th>
+                            <th>Payment Method</th>
+                            <th>Order Status</th>
+                            <th>Order Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% if (recentOrders && recentOrders.length > 0) { %>
+                            <% recentOrders.forEach(order => { %>
+                            <tr>
+                                <td><%= order.order_number %></td>
+                                <td><%= order.user ? order.user.name : 'Guest' %></td>
+                                <td><%= order.user ? order.user.mobile : 'N/A' %></td>
+                                <td>₹<%= parseFloat(order.total).toLocaleString() %></td>
+                                <td><%= order.payment_method ? order.payment_method.toUpperCase() : 'COD' %></td>
+                                <td>
+                                    <span class="badge-status 
+                                        <%= order.order_status === 'delivered' ? 'badge-delivered' : 
+                                          (order.order_status === 'cancelled' ? 'badge-cancelled' : 
+                                          (order.order_status === 'processing' ? 'badge-processing' : 'badge-pending')) %>">
+                                        <%= order.order_status %>
+                                    </span>
+                                 </td>
+                                <td><%= new Date(order.created_at).toLocaleDateString() %></td>
+                            </tr>
+                            <% }) %>
+                        <% } else { %>
+                            <tr><td colspan="7" class="text-center">No orders found</td></tr>
+                        <% } %>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Products Table -->
+    <div class="card mt-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <span><i class="fas fa-box"></i> Products Inventory</span>
+            <div>
+                <input type="text" id="productsSearch" class="form-control form-control-sm" placeholder="Search products..." style="width: 200px;">
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table id="productsTable" class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Product Name</th>
+                            <th>Category</th>
+                            <th>Price</th>
+                            <th>Stock</th>
+                            <th>Type</th>
+                            <th>Stock Status</th>
+                            <th>Product Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% if (recentProducts && recentProducts.length > 0) { %>
+                            <% recentProducts.forEach(product => { %>
+                            <tr>
+                                <td><%= product.id %> (<%= product.variation_id ? 'Var-' + product.variation_id : '' %>)</td>
+                                <td>
+                                    <%= product.name %>
+                                    <% if (product.has_variations) { %>
+                                        <span class="badge badge-variable ms-1">Variable</span>
+                                    <% } %>
+                                 </td>
+                                <td><%= product.category ? product.category.name : 'Uncategorized' %></td>
+                                <td>₹<%= parseFloat(product.price).toLocaleString() %></td>
+                                <td class="stock-cell <%= product.stock === 0 ? 'stock-out' : (product.stock < 10 ? 'stock-low' : 'stock-in') %>">
+                                    <strong><%= product.stock %></strong>
+                                    <% if (product.is_variation) { %>
+                                        <small class="text-muted">(Variant)</small>
+                                    <% } %>
+                                </td>
+                                <td>
+                                    <% if (product.has_variations) { %>
+                                        <span class="badge badge-variable">Variable Product</span>
+                                    <% } else { %>
+                                        <span class="badge badge-stock badge-instock">Simple Product</span>
+                                    <% } %>
+                                </td>
+                                <td>
+                                    <span class="badge-stock <%= product.stockBadge %>">
+                                        <%= product.stockStatusText %>
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="badge-status <%= product.is_active ? 'badge-active' : 'badge-inactive' %>">
+                                        <%= product.is_active ? 'Active' : 'Inactive' %>
+                                    </span>
+                                </td>
+                            </tr>
+                            <% }) %>
+                        <% } else { %>
+                            <tr><td colspan="8" class="text-center">No products found</td></tr>
+                        <% } %>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Low Stock Alert -->
+    <div class="card mt-4">
+        <div class="card-header bg-warning text-dark d-flex justify-content-between align-items-center">
+            <span><i class="fas fa-exclamation-triangle"></i> Low Stock Alert (Stock < 10) - <span id="lowStockCount"><%= lowStockProducts.length %></span> items</span>
+            <div>
+                <input type="text" id="lowStockSearch" class="form-control form-control-sm" placeholder="Search..." style="width: 200px;">
+                <button class="btn btn-sm btn-success ms-2" onclick="exportLowStock()">
+                    <i class="fas fa-file-excel"></i> Export
+                </button>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table id="lowStockTable" class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Product / Variation</th>
+                            <th>Current Stock</th>
+                            <th>Price</th>
+                            <th>Type</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% if (lowStockProducts && lowStockProducts.length > 0) { %>
+                            <% lowStockProducts.forEach(product => { %>
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <i class="fas fa-<%= product.is_variation ? 'code-branch' : 'box' %> text-warning"></i>
+                                        <div>
+                                            <%= product.name %>
+                                            <% if (product.is_variation) { %>
+                                                <br><small class="text-muted">Variation ID: #<%= product.variation_id %></small>
+                                            <% } %>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="text-danger fw-bold"><%= product.stock %></td>
+                                <td>₹<%= parseFloat(product.price).toLocaleString() %></td>
+                                <td>
+                                    <span class="badge <%= product.is_variation ? 'bg-info' : 'bg-secondary' %>">
+                                        <%= product.is_variation ? 'Variation' : 'Simple' %>
+                                    </span>
+                                </td>
+                                <td>
+                                    <a href="/admin/products/edit/<%= product.id %>" class="btn btn-sm btn-primary">
+                                        <i class="fas fa-edit"></i> Restock
+                                    </a>
+                                </td>
+                            </tr>
+                            <% }) %>
+                        <% } else { %>
+                            <tr>
+                                <td colspan="5" class="text-center text-success py-4">
+                                    <i class="fas fa-check-circle fa-2x mb-2"></i>
+                                    <p>All products have sufficient stock ✓</p>
+                                </td>
+                            </tr>
+                        <% } %>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Top Selling Products Section -->
+    <div class="row mt-4">
+        <div class="col-xl-7 col-lg-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span><i class="fas fa-fire text-danger"></i> Top Selling Products (All Time)</span>
+                    <div>
+                        <input type="text" id="topSellingSearch" class="form-control form-control-sm" placeholder="Search..." style="width: 200px;">
+                        <button class="btn btn-sm btn-success ms-2" onclick="exportTopSelling()">
+                            <i class="fas fa-file-excel"></i> Export
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table id="topSellingTable" class="table table-hover mb-0">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Product</th>
+                                    <th>Price</th>
+                                    <th>Units Sold</th>
+                                    <th>Revenue</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <% if (topSellingProducts && topSellingProducts.length > 0) { %>
+                                    <% topSellingProducts.forEach((product, index) => { %>
+                                    <tr>
+                                        <td class="text-center fw-bold"><%= index + 1 %></td>
+                                        <td>
+                                            <div class="d-flex align-items-center gap-2">
+                                                <% if (product.image) { %>
+                                                    <img src="/uploads/products/<%= product.image %>" style="width: 40px; height: 40px; object-fit: cover; border-radius: 8px;">
+                                                <% } else { %>
+                                                    <div style="width: 40px; height: 40px; background: #f0f0f0; border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+                                                        <i class="fas fa-box text-muted"></i>
+                                                    </div>
+                                                <% } %>
+                                                <div>
+                                                    <div class="fw-semibold"><%= product.name %></div>
+                                                    <small class="text-muted">ID: #<%= product.id %></small>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="fw-bold">₹<%= product.price.toLocaleString() %></div>
+                                            <% if (product.discount_percentage > 0) { %>
+                                                <small class="text-success"><%= product.discount_percentage %>% off</small>
+                                            <% } %>
+                                         </td>
+                                        <td><span class="badge bg-primary rounded-pill fs-6"><%= product.total_quantity %></span></td>
+                                        <td class="fw-bold text-success">₹<%= product.total_amount.toLocaleString() %></td>
+                                        <td>
+                                            <a href="/admin/products/edit/<%= product.id %><%= product.variation_id ? '?variation=' + product.variation_id : '' %>" class="btn btn-sm btn-outline-primary">
+                                                <i class="fas fa-eye"></i> View
+                                            </a>
+                                         </td>
+                                    </tr>
+                                    <% }) %>
+                                <% } else { %>
+                                    <tr><td colspan="6" class="text-center py-4">No sales data available yet</td></tr>
+                                <% } %>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-xl-5 col-lg-12">
+            <!-- This Month's Top Sellers -->
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span><i class="fas fa-calendar-alt text-success"></i> This Month's Top Sellers</span>
+                    <button class="btn btn-sm btn-success" onclick="exportMonthlyTop()">
+                        <i class="fas fa-file-excel"></i> Export
+                    </button>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table id="monthlyTopTable" class="table">
+                            <thead>
+                                <tr><th>#</th><th>Product</th><th>Units</th><th>Revenue</th></tr>
+                            </thead>
+                            <tbody>
+                                <% if (topSellingThisMonth && topSellingThisMonth.length > 0) { %>
+                                    <% topSellingThisMonth.forEach((product, index) => { %>
+                                    <tr>
+                                        <td><%= index + 1 %></td>
+                                        <td><%= product.name %></td>
+                                        <td><%= product.total_quantity %></td>
+                                        <td class="text-success">₹<%= product.total_amount.toLocaleString() %></td>
+                                    </tr>
+                                    <% }) %>
+                                <% } else { %>
+                                    <tr><td colspan="4" class="text-center">No sales this month</td></tr>
+                                <% } %>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.1/js/dataTables.buttons.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.bootstrap5.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/pdfmake.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/vfs_fonts.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.html5.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.print.min.js"></script>
+
+<script>
+    $(document).ready(function() {
+        // Initialize Orders DataTable
+        $('#ordersTable').DataTable({
+            pageLength: 10,
+            order: [[6, 'desc']],
+            dom: 'Bfrtip',
+            buttons: [
+                { extend: 'excel', text: '<i class="fas fa-file-excel"></i> Export Excel', className: 'btn btn-sm btn-success' },
+                { extend: 'csv', text: '<i class="fas fa-file-csv"></i> Export CSV', className: 'btn btn-sm btn-info' },
+                { extend: 'print', text: '<i class="fas fa-print"></i> Print', className: 'btn btn-sm btn-secondary' }
+            ],
+            language: { search: "Search:", searchPlaceholder: "Search orders..." }
+        });
+        
+        // Initialize Products DataTable
+        $('#productsTable').DataTable({
+            pageLength: 10,
+            order: [[0, 'desc']],
+            dom: 'Bfrtip',
+            buttons: [
+                { extend: 'excel', text: '<i class="fas fa-file-excel"></i> Export Excel', className: 'btn btn-sm btn-success' },
+                { extend: 'csv', text: '<i class="fas fa-file-csv"></i> Export CSV', className: 'btn btn-sm btn-info' }
+            ]
+        });
+        
+        // Initialize Low Stock DataTable
+        $('#lowStockTable').DataTable({
+            pageLength: 10,
+            order: [[1, 'asc']],
+            dom: 'Bfrtip',
+            buttons: [
+                { extend: 'excel', text: '<i class="fas fa-file-excel"></i> Export', className: 'btn btn-sm btn-success' }
+            ]
+        });
+        
+        // Initialize Top Selling DataTable
+        $('#topSellingTable').DataTable({
+            pageLength: 10,
+            order: [[3, 'desc']],
+            dom: 'Bfrtip',
+            buttons: [
+                { extend: 'excel', text: '<i class="fas fa-file-excel"></i> Export', className: 'btn btn-sm btn-success' }
+            ]
+        });
+        
+        // Initialize Monthly Top DataTable
+        $('#monthlyTopTable').DataTable({
+            pageLength: 10,
+            order: [[2, 'desc']],
+            dom: 'Bfrtip',
+            buttons: [
+                { extend: 'excel', text: '<i class="fas fa-file-excel"></i> Export', className: 'btn btn-sm btn-success' }
+            ]
+        });
+    });
+    
+    // Global Date Filter
+    document.getElementById('globalDateFilter').addEventListener('change', function() {
+        const customDiv = document.getElementById('customDateRange');
+        if (this.value === 'custom') {
+            customDiv.style.display = 'block';
+        } else {
+            customDiv.style.display = 'none';
+            filterTablesByDate(this.value);
+        }
+    });
+    
+    function applyCustomDate() {
+        const startDate = document.getElementById('startDate').value;
+        const endDate = document.getElementById('endDate').value;
+        if (startDate && endDate) {
+            filterTablesByDate('custom', startDate, endDate);
+        } else {
+            alert('Please select both start and end dates');
+        }
+    }
+    
+    function filterTablesByDate(range, startDate, endDate) {
+        // This function would filter all tables based on date range
+        // Implement your date filtering logic here
+        console.log('Filtering by date range:', range, startDate, endDate);
+        location.reload(); // Simple reload with query params
+    }
+    
+    // Export functions
+    function exportAllTables() {
+        $('#ordersTable').DataTable().button(0).trigger();
+        setTimeout(() => $('#productsTable').DataTable().button(0).trigger(), 1000);
+        setTimeout(() => $('#lowStockTable').DataTable().button(0).trigger(), 2000);
+        setTimeout(() => $('#topSellingTable').DataTable().button(0).trigger(), 3000);
+    }
+    
+    function exportLowStock() {
+        $('#lowStockTable').DataTable().button(0).trigger();
+    }
+    
+    function exportTopSelling() {
+        $('#topSellingTable').DataTable().button(0).trigger();
+    }
+    
+    function exportMonthlyTop() {
+        $('#monthlyTopTable').DataTable().button(0).trigger();
+    }
+</script>
+</body>
+</html>

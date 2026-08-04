@@ -1,0 +1,363 @@
+/* ── Category Nav Strip ── */
+.cat-nav-strip {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0;
+  padding: 18px 40px;
+  background: #ffffff;
+  border-top: 1px solid #e8e8e8;
+  border-bottom: 1px solid #e8e8e8;
+}
+
+.cat-nav-item {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: 'Inter', -apple-system, sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: #1a1a1a;
+  padding: 6px 28px;
+  transition: color 0.25s ease;
+  white-space: nowrap;
+  line-height: 1.5;
+}
+
+.cat-nav-item:hover {
+  color: #b8864f;
+}
+
+.cat-nav-divider {
+  color: #c8c8c8;
+  font-size: 14px;
+  font-weight: 300;
+  user-select: none;
+  line-height: 1;
+  pointer-events: none;
+}
+
+@media (max-width: 768px) {
+  .cat-nav-strip {
+    padding: 14px 20px;
+    gap: 0;
+  }
+
+  .cat-nav-item {
+    font-size: 10px;
+    letter-spacing: 2px;
+    padding: 5px 14px;
+  }
+}
+
+@media (max-width: 480px) {
+  .cat-nav-item {
+    padding: 5px 10px;
+    letter-spacing: 1.5px;
+  }
+}
+
+/* ── End Category Nav Strip ── */
+
+.hoga-section {
+  padding: 50px 5%;
+  background-color: #fff;
+}
+
+.hoga-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+  font-family: 'Playfair Display', serif;
+}
+
+.hoga-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 28px;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin: 0;
+}
+
+.hoga-nav {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.hoga-view-all {
+  font-size: 14px;
+  color: #666;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.hoga-btns {
+  display: flex;
+  gap: 10px;
+}
+
+.hoga-arrow {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 1px solid #ddd;
+  background: white;
+  font-size: 24px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: 0.3s ease;
+}
+
+.hoga-arrow:hover {
+  background: #000;
+  color: #fff;
+}
+
+/* Horizontal Scroll logic */
+.hoga-carousel {
+  display: flex;
+  gap: 25px;
+  overflow-x: auto;
+  scroll-behavior: smooth;
+  padding-bottom: 20px;
+  scrollbar-width: none; /* Firefox */
+}
+
+.hoga-carousel::-webkit-scrollbar {
+  display: none; /* Chrome */
+}
+
+.hoga-card {
+  min-width: clamp(140px, 22vw, 200px);
+  background: #fff;
+  border-radius: 10px;
+  text-align: center;
+  transition: transform 0.3s ease;
+  cursor: pointer;
+  position: relative;
+}
+
+.hoga-card:hover {
+  transform: translateY(-5px);
+}
+
+.hoga-img-box {
+  width: 100%;
+  height: 200px;
+  border-radius: 10px;
+  overflow: hidden;
+  background-color: #f9f9f9;
+  position: relative;
+}
+
+.hoga-img-box img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: 0.5s;
+}
+
+/* .hoga-card:hover .hoga-img-box img {
+  transform: scale(1.1);
+} */
+
+/* Text overlay on top of image */
+/* Text overlay on top of image */
+.hoga-img-box::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 80px;
+  /* background: linear-gradient(to top, rgba(0,0,0,0.6), transparent); */
+  border-radius: 10px;
+  pointer-events: none;
+}
+
+.category-info {
+  position: absolute;
+  top: 15px;
+  left: 0;
+  right: 0;
+  text-align: center;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+}
+
+.hoga-name {
+  font-size: 18px;
+  color: #000;
+  background: white;
+  padding: 5px 15px;
+  border-radius: 5px;
+  margin: 0;
+  display: inline-block;
+  font-weight: 600;
+  width: 80%;
+}
+
+.product-count {
+  display: block;
+  font-size: 12px;
+  color: white;
+  margin-top: 5px;
+  text-align: center;
+  text-shadow: 1px 1px 1px rgba(0,0,0,0.5);
+  font-weight: 500;
+}
+
+.hoga-name {
+ font-size: 18px;
+    /* font-weight: 600; */
+   
+    color: #000;
+    border-radius: 5px;
+    background: white;
+    margin: 0 0 5px 0;
+    /* font-family: 'Playfair Display', serif; */
+    /* text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5); */
+}
+
+
+
+/* Remove old styles that are no longer needed */
+.hoga-card {
+  padding: 0;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+.hoga-card:hover {
+  box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+}
+
+/* Loading Spinner */
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  text-align: center;
+}
+
+.loading-spinner {
+  width: 50px;
+  height: 50px;
+  border: 3px solid #f3f3f3;
+  border-top: 3px solid #667eea;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 15px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Error State */
+.error-container {
+  text-align: center;
+  padding: 60px 20px;
+  background: #fee;
+  border-radius: 15px;
+  margin: 20px;
+}
+
+.error-container p {
+  color: #dc3545;
+  margin-bottom: 15px;
+}
+
+.retry-btn {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  padding: 10px 25px;
+  border-radius: 25px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.retry-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(102,126,234,0.4);
+}
+
+/* No Categories */
+.no-categories {
+  text-align: center;
+  padding: 60px;
+  width: 100%;
+  color: #666;
+}
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+  .hoga-section {
+    padding: 32px 4%;
+  }
+
+  .hoga-title {
+    font-size: 22px;
+  }
+
+  .hoga-img-box {
+    height: 160px;
+  }
+
+  .hoga-name {
+    font-size: 14px;
+    padding: 4px 10px;
+  }
+
+  .hoga-carousel {
+    gap: 14px;
+    padding-bottom: 12px;
+  }
+
+  .hoga-arrow {
+    width: 34px;
+    height: 34px;
+    font-size: 18px;
+  }
+}
+
+@media (max-width: 480px) {
+  .hoga-section {
+    padding: 24px 3%;
+  }
+
+  .hoga-header {
+    margin-bottom: 18px;
+  }
+
+  .hoga-title {
+    font-size: 18px;
+  }
+
+  .hoga-img-box {
+    height: 130px;
+  }
+
+  .hoga-name {
+    font-size: 12px;
+    padding: 3px 8px;
+  }
+
+  .hoga-carousel {
+    gap: 10px;
+  }
+}

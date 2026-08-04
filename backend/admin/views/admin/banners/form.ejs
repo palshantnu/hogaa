@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %> | Admin Panel</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { background: #f8f9fc; }
+        .card { border: none; border-radius: 15px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        .preview-container { margin-top: 10px; }
+        .preview-image { max-width: 200px; border-radius: 8px; }
+        .preview-video { max-width: 300px; border-radius: 8px; }
+    </style>
+</head>
+<body>
+    
+            <main>
+                <div class="container-fluid px-4 py-4">
+                    <div class="d-flex align-items-center mb-4">
+                        <a href="/admin/banners" class="btn btn-secondary me-3">
+                            <i class="fas fa-arrow-left me-1"></i> Back
+                        </a>
+                        <h4><i class="fas fa-image text-primary me-2"></i><%= title %></h4>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-body">
+                            <form action="/admin/banners/<%= banner ? 'edit/' + banner.id : 'add' %>" method="POST" enctype="multipart/form-data">
+                                <div class="row">
+                                    <!-- Media Type Selection -->
+                                    <div class="col-md-12 mb-3">
+                                        <label class="form-label">Media Type</label>
+                                        <div class="btn-group w-100" role="group">
+                                            <input type="radio" class="btn-check" name="media_type" id="mediaImage" value="image" autocomplete="off" 
+                                                <%= !banner || banner.media_type === 'image' ? 'checked' : '' %> onclick="toggleMediaType('image')">
+                                            <label class="btn btn-outline-primary" for="mediaImage">
+                                                <i class="fas fa-image me-2"></i>Image
+                                            </label>
+                                            
+                                            <input type="radio" class="btn-check" name="media_type" id="mediaVideo" value="video" autocomplete="off" 
+                                                <%= banner && banner.media_type === 'video' ? 'checked' : '' %> onclick="toggleMediaType('video')">
+                                            <label class="btn btn-outline-primary" for="mediaVideo">
+                                                <i class="fas fa-video me-2"></i>Video
+                                            </label>
+                                        </div>
+                                    </div>
+
+                                    <!-- Image Upload Section -->
+                                  <!-- Image Upload Section -->
+<div id="imageSection" class="col-md-12 mb-3" style="<%= banner && banner.media_type === 'video' ? 'display: none;' : 'display: block;' %>">
+    <label class="form-label">Banner Image</label>
+    <input type="file" name="image" class="form-control" accept="image/jpeg,image/png,image/gif,image/webp" 
+        id="imageInput" <%= (!banner || (banner.media_type !== 'video' && !banner.image)) ? 'required' : '' %> onchange="previewImage(this)">
+    <small class="text-muted">Supported formats: JPG, PNG, GIF, WebP (Max 5MB)</small>
+    
+    <% if (banner && banner.image) { %>
+        <div class="preview-container">
+            <img src="/uploads/banners/<%= banner.image %>" class="preview-image" id="imagePreview">
+            <br>
+            <small class="text-muted">Current image</small>
+        </div>
+    <% } %>
+    <div id="imagePreviewContainer" style="display: none;">
+        <img src="" class="preview-image" id="newImagePreview">
+    </div>
+</div>
+
+                                    <!-- Video Upload Section -->
+                                    <div id="videoSection" class="col-md-12 mb-3" style="<%= banner && banner.media_type === 'video' ? 'display: block;' : 'display: none;' %>">
+                                        <div class="mb-3">
+                                            <label class="form-label">Video File</label>
+                                          <input type="file" name="video" class="form-control" accept="video/mp4,video/webm,video/ogg" onchange="previewVideo(this)">
+                                            <small class="text-muted">Supported formats: MP4, WebM, OGG (Max 50MB)</small>
+                                            
+                                            <% if (banner && banner.video) { %>
+                                                <div class="preview-container">
+                                                    <video class="preview-video" controls style="max-width: 300px;">
+                                                        <source src="/uploads/banners/<%= banner.video %>" type="video/mp4">
+                                                        Your browser does not support the video tag.
+                                                    </video>
+                                                    <br>
+                                                    <small class="text-muted">Current video</small>
+                                                </div>
+                                            <% } %>
+                                            <div id="videoPreviewContainer" style="display: none;">
+                                                <video class="preview-video" controls style="max-width: 300px;"></video>
+                                            </div>
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <label class="form-label">Video Poster (Thumbnail)</label>
+                                            <input type="file" name="video_poster" class="form-control" accept="image/jpeg,image/png" onchange="previewPoster(this)">
+                                            <small class="text-muted">Optional thumbnail image for video (JPG, PNG)</small>
+                                            
+                                            <% if (banner && banner.video_poster) { %>
+                                                <div class="preview-container">
+                                                    <img src="/uploads/banners/<%= banner.video_poster %>" class="preview-image" id="posterPreview">
+                                                    <br>
+                                                    <small class="text-muted">Current poster</small>
+                                                </div>
+                                            <% } %>
+                                            <div id="posterPreviewContainer" style="display: none;">
+                                                <img src="" class="preview-image" id="newPosterPreview">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="col-md-12 mb-3">
+                                        <label class="form-label required">Title</label>
+                                        <input type="text" name="title" class="form-control" value="<%= banner ? banner.title : '' %>" required>
+                                    </div>
+                                    
+                                    <div class="col-md-12 mb-3">
+                                        <label class="form-label">Description</label>
+                                        <textarea name="description" class="form-control" rows="3"><%= banner ? banner.description : '' %></textarea>
+                                    </div>
+                                    
+                                    <div class="col-md-12 mb-3">
+                                        <label class="form-label">Link URL</label>
+                                        <input type="url" name="link" class="form-control" value="<%= banner ? banner.link : '' %>" placeholder="https://example.com">
+                                        <small class="text-muted">Where to redirect when banner is clicked</small>
+                                    </div>
+                                    
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Sort Order</label>
+                                        <input type="number" name="sort_order" class="form-control" value="<%= banner ? banner.sort_order : 0 %>">
+                                    </div>
+                                    
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Status</label>
+                                        <select name="status" class="form-select">
+                                            <option value="active" <%= banner && banner.status === 'active' ? 'selected' : '' %>>Active</option>
+                                            <option value="inactive" <%= banner && banner.status === 'inactive' ? 'selected' : '' %>>Inactive</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                
+                                <div class="mt-4">
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-save me-2"></i>Save Banner
+                                    </button>
+                                    <a href="/admin/banners" class="btn btn-secondary ms-2">Cancel</a>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </main>
+   <script src="https://cdn.ckeditor.com/4.21.0/standard/ckeditor.js"></script>
+
+    <script>
+   function toggleMediaType(type) {
+    const imageSection = document.getElementById('imageSection');
+    const videoSection = document.getElementById('videoSection');
+    const imageInput = document.getElementById('imageInput');
+    const videoInput = document.querySelector('input[name="video"]');
+
+    if (type === 'image') {
+        imageSection.style.display = 'block';
+        videoSection.style.display = 'none';
+
+        // required handling
+        if (imageInput) imageInput.required = true;
+        if (videoInput) videoInput.required = false;
+
+    } else {
+        imageSection.style.display = 'none';
+        videoSection.style.display = 'block';
+
+        // required handling
+        if (imageInput) imageInput.required = false;
+        if (videoInput) videoInput.required = true;
+    }
+}
+        function previewImage(input) {
+            const previewContainer = document.getElementById('imagePreviewContainer');
+            const preview = document.getElementById('newImagePreview');
+            
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    preview.src = e.target.result;
+                    previewContainer.style.display = 'block';
+                }
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        function previewVideo(input) {
+            const previewContainer = document.getElementById('videoPreviewContainer');
+            const video = previewContainer.querySelector('video');
+            
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    video.src = e.target.result;
+                    previewContainer.style.display = 'block';
+                }
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        function previewPoster(input) {
+            const previewContainer = document.getElementById('posterPreviewContainer');
+            const preview = document.getElementById('newPosterPreview');
+            
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    preview.src = e.target.result;
+                    previewContainer.style.display = 'block';
+                }
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+    </script>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

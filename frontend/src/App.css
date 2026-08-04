@@ -1,0 +1,32 @@
+body {
+    display: block;
+    margin: 0px;
+}
+
+.hogaa-font {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+}
+/* Global styles for modal */
+.modal-open {
+  overflow: hidden;
+}
+
+/* Ensure navbar doesn't overlay modal */
+
+
+.top-bar-marquee {
+  position: relative;
+  z-index: 9998;
+}
+
+/* Modal overlay - highest z-index */
+.order-modal-overlay {
+  z-index: 9999 !important;
+}
+
+.order-modal {
+  z-index: 10000 !important;
+}
+body {
+    font-family: 'Inter', sans-serif;
+}

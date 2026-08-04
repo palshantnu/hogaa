@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order #<%= order.order_number %> | Admin Panel</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { background: #f8f9fc; font-family: 'Segoe UI', sans-serif; }
+        .card { border: none; border-radius: 15px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); margin-bottom: 20px; }
+        .card-header { background: white; border-bottom: 2px solid #f0f0f0; font-weight: 600; }
+        .btn-primary { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none; }
+        
+        /* Status Badges */
+        .badge-pending { background: #fff3cd; color: #856404; padding: 5px 12px; border-radius: 20px; }
+        .badge-processing { background: #cce5ff; color: #004085; padding: 5px 12px; border-radius: 20px; }
+        .badge-shipped { background: #d1ecf1; color: #0c5460; padding: 5px 12px; border-radius: 20px; }
+        .badge-delivered { background: #d4edda; color: #155724; padding: 5px 12px; border-radius: 20px; }
+        .badge-cancelled { background: #f8d7da; color: #721c24; padding: 5px 12px; border-radius: 20px; }
+        
+        .info-row { padding: 10px 0; border-bottom: 1px solid #f0f0f0; }
+        .info-label { font-weight: 600; color: #555; width: 150px; display: inline-block; }
+        .product-img { width: 50px; height: 50px; object-fit: cover; border-radius: 8px; }
+        .total-amount { font-size: 24px; font-weight: 700; color: #28a745; }
+    </style>
+</head>
+<body>
+
+<div class="container-fluid px-4 py-4">
+    <div class="d-flex align-items-center mb-4">
+        <a href="/admin/orders" class="btn btn-secondary me-3">
+            <i class="fas fa-arrow-left me-1"></i> Back to Orders
+        </a>
+        <h4><i class="fas fa-shopping-cart text-primary me-2"></i>Order Details</h4>
+    </div>
+    
+    <!-- Order Status Update -->
+    <div class="card">
+        <div class="card-header">
+            <i class="fas fa-truck me-2"></i>Update Order Status
+        </div>
+        <div class="card-body">
+            <form action="/admin/orders/update-status/<%= order.id %>" method="POST" class="row align-items-end">
+                <div class="col-md-4">
+                    <label class="form-label">Current Status</label>
+                    <p class="mb-0">
+                        <span class="badge 
+                            <%= order.order_status === 'delivered' ? 'badge-delivered' : 
+                              (order.order_status === 'cancelled' ? 'badge-cancelled' : 
+                              (order.order_status === 'shipped' ? 'badge-shipped' : 
+                              (order.order_status === 'processing' ? 'badge-processing' : 'badge-pending'))) %>">
+                            <%= order.order_status ? order.order_status.toUpperCase() : 'PENDING' %>
+                        </span>
+                    </p>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Change Status</label>
+                    <select name="status" class="form-select">
+                        <option value="pending" <%= order.order_status === 'pending' ? 'selected' : '' %>>Pending</option>
+                        <option value="processing" <%= order.order_status === 'processing' ? 'selected' : '' %>>Processing</option>
+                        <option value="shipped" <%= order.order_status === 'shipped' ? 'selected' : '' %>>Shipped</option>
+                        <option value="delivered" <%= order.order_status === 'delivered' ? 'selected' : '' %>>Delivered</option>
+                        <option value="cancelled" <%= order.order_status === 'cancelled' ? 'selected' : '' %>>Cancelled</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="fas fa-save me-2"></i>Update Status
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Order Information -->
+    <div class="card">
+        <div class="card-header">
+            <i class="fas fa-info-circle me-2"></i>Order Information
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="info-row">
+                        <span class="info-label">Order Number:</span>
+                        <strong><%= order.order_number %></strong>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Order Date:</span>
+                        <%= new Date(order.created_at).toLocaleString() %>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Payment Method:</span>
+                        <%= order.payment_method ? order.payment_method.toUpperCase() : 'COD' %>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Payment Status:</span>
+                        <span class="badge 
+                            <%= order.payment_status === 'paid' ? 'badge-delivered' : 'badge-pending' %>">
+                            <%= order.payment_status ? order.payment_status.toUpperCase() : 'PENDING' %>
+                        </span>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="info-row">
+                        <span class="info-label">Customer Name:</span>
+                        <%= order.user ? order.user.name : 'Guest' %>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Email:</span>
+                        <%= order.user ? order.user.email : 'N/A' %>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Phone:</span>
+                        <%= order.user ? order.user.mobile : order.shipping_phone %>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Shipping Information -->
+    <div class="card">
+        <div class="card-header">
+            <i class="fas fa-map-marker-alt me-2"></i>Shipping Information
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="info-row">
+                        <span class="info-label">Address:</span>
+                        <%= order.shipping_address %>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">City:</span>
+                        <%= order.shipping_city %>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">State:</span>
+                        <%= order.shipping_state %>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Pincode:</span>
+                        <%= order.shipping_pincode %>
+                    </div>
+                    <% if (order.notes) { %>
+                    <div class="info-row">
+                        <span class="info-label">Notes:</span>
+                        <%= order.notes %>
+                    </div>
+                    <% } %>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Order Items -->
+    <div class="card">
+        <div class="card-header">
+            <i class="fas fa-box me-2"></i>Order Items
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Image</th>
+                            <th>Product Name</th>
+                            <th>Quantity</th>
+                            <th>Unit Price</th>
+                            <th>Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% if (order.items && order.items.length > 0) { %>
+                            <% order.items.forEach(item => { %>
+                            <tr>
+                                <td>
+                                    <% if (item.product && item.product.images && item.product.images[0]) { %>
+                                        <img src="/uploads/products/<%= item.product.images[0] %>" class="product-img" alt="product">
+                                    <% } else { %>
+                                        <i class="fas fa-image fa-2x text-muted"></i>
+                                    <% } %>
+                                </td>
+                                <td><%= item.product_name || (item.product ? item.product.name : 'Product') %></td>
+                                <td><%= item.quantity %></td>
+                                <td>₹<%= parseFloat(item.price).toLocaleString('en-IN') %></td>
+                                <td>₹<%= parseFloat(item.total).toLocaleString('en-IN') %></td>
+                            </tr>
+                            <% }) %>
+                        <% } else { %>
+                            <tr>
+                                <td colspan="5" class="text-center">No items found</td>
+                            </tr>
+                        <% } %>
+                    </tbody>
+                    <tfoot>
+                        <tr class="table-light">
+                            <td colspan="4" class="text-end"><strong>Subtotal:</strong></td>
+                            <td><strong>₹<%= parseFloat(order.subtotal).toLocaleString('en-IN') %></strong></td>
+                        </tr>
+                        <% if (order.shipping_charge > 0) { %>
+                        <tr class="table-light">
+                            <td colspan="4" class="text-end"><strong>Shipping Charge:</strong></td>
+                            <td><strong>₹<%= parseFloat(order.shipping_charge).toLocaleString('en-IN') %></strong></td>
+                        </tr>
+                        <% } %>
+                        <% if (order.tax > 0) { %>
+                        <tr class="table-light">
+                            <td colspan="4" class="text-end"><strong>Tax (GST):</strong></td>
+                            <td><strong>₹<%= parseFloat(order.tax).toLocaleString('en-IN') %></strong></td>
+                        </tr>
+                        <% } %>
+                        <% if (order.discount > 0) { %>
+                        <tr class="table-light">
+                            <td colspan="4" class="text-end"><strong>Discount:</strong></td>
+                            <td><strong>-₹<%= parseFloat(order.discount).toLocaleString('en-IN') %></strong></td>
+                        </tr>
+                        <% } %>
+                        <tr class="table-primary">
+                            <td colspan="4" class="text-end"><strong>Total Amount:</strong></td>
+                            <td><strong class="total-amount">₹<%= parseFloat(order.total).toLocaleString('en-IN') %></strong></td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

@@ -1,0 +1,66 @@
+<div class="container-fluid px-4 py-4">
+    <div class="d-flex align-items-center mb-4">
+        <a href="/admin/dashboard" class="btn btn-secondary me-3">
+            <i class="fas fa-arrow-left me-1"></i> Back
+        </a>
+        <h4 class="mb-0"><i class="fas fa-cog text-primary me-2"></i>Site Settings</h4>
+    </div>
+
+    <% if (success) { %>
+        <div class="alert alert-success alert-dismissible fade show">
+            <i class="fas fa-check-circle me-2"></i>Settings saved successfully!
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    <% } %>
+
+    <div class="card border-0 shadow-sm" style="border-radius:15px;">
+        <div class="card-header bg-white py-3">
+            <h5 class="mb-1"><i class="fas fa-bullhorn text-warning me-2"></i>Marquee Messages (Top Bar)</h5>
+            <small class="text-muted">These messages scroll across the top of the website. Changes take effect immediately.</small>
+        </div>
+        <div class="card-body p-4">
+            <form action="/admin/settings/marquee" method="POST">
+                <div id="messagesList">
+                    <% messages.forEach(function(msg, i) { %>
+                        <div class="message-row d-flex align-items-center gap-2 mb-2">
+                            <input type="text" name="messages[]" class="form-control" value="<%= msg %>" placeholder="Enter marquee message..." required>
+                            <button type="button" class="btn btn-outline-danger btn-sm flex-shrink-0" onclick="removeRow(this)" title="Remove">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    <% }) %>
+                </div>
+
+                <button type="button" class="btn btn-outline-primary btn-sm mb-4 mt-1" onclick="addRow()">
+                    <i class="fas fa-plus me-1"></i>Add Message
+                </button>
+
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-primary px-4">
+                        <i class="fas fa-save me-1"></i>Save Settings
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+function addRow() {
+    const div = document.createElement('div');
+    div.className = 'message-row d-flex align-items-center gap-2 mb-2';
+    div.innerHTML = `
+        <input type="text" name="messages[]" class="form-control" placeholder="Enter marquee message..." required>
+        <button type="button" class="btn btn-outline-danger btn-sm flex-shrink-0" onclick="removeRow(this)" title="Remove">
+            <i class="fas fa-times"></i>
+        </button>`;
+    document.getElementById('messagesList').appendChild(div);
+    div.querySelector('input').focus();
+}
+
+function removeRow(btn) {
+    const rows = document.querySelectorAll('.message-row');
+    if (rows.length <= 1) { alert('At least one message is required.'); return; }
+    btn.closest('.message-row').remove();
+}
+</script>

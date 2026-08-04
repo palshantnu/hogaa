@@ -1,0 +1,255 @@
+:root{
+  --gold:#C8A96B;
+  --dark:#111;
+  --text:#555;
+  --light:#faf8f5;
+}
+
+/* Global */
+.about-page{
+  background:var(--light);
+  color:var(--dark);
+  font-family:"Poppins",sans-serif;
+}
+
+/* HERO */
+.hero{
+  height:100vh;
+  position:relative;
+  overflow:hidden;
+}
+
+.hero img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  transform:scale(1.08);
+}
+
+.overlay{
+  position:absolute;
+  inset:0;
+  background:linear-gradient(
+      to bottom,
+      rgba(0,0,0,.15),
+      rgba(0,0,0,.55)
+  );
+}
+
+.hero-content{
+  position:absolute;
+  inset:0;
+  z-index:2;
+
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  align-items:center;
+  text-align:center;
+  color:white;
+}
+
+.hero-content h1{
+  font-size:clamp(5rem,12vw,10rem);
+  letter-spacing:18px;
+  font-weight:900;
+  margin:0;
+}
+
+.hero-content p{
+  margin-top:15px;
+  letter-spacing:5px;
+  font-size:2rem;
+  text-transform:capitalize;
+}
+
+/* STORY */
+.brand-story{
+  max-width:1300px;
+  margin:auto;
+  padding:140px 40px;
+}
+
+.brand-story span{
+  color:#000;
+  font-weight:500;
+  letter-spacing:3px;
+    font-size:1.5rem;
+    margin-bottom:20px;
+}
+
+.brand-story h2{
+  font-size:4rem;
+  /* max-width:700px; */
+  /* margin:20px 0 40px; */
+  line-height:1.1;
+}
+
+.brand-story p{
+  color:var(--text);
+  font-size:1.5rem;
+  line-height:2;
+}
+
+/* Highlight Box */
+.story-highlight{
+  background:white;
+  border-radius:24px;
+  padding:35px;
+  margin:40px 0;
+  box-shadow:
+  0 10px 40px rgba(0,0,0,.06);
+  border:1px solid rgba(0,0,0,.05);
+}
+
+.story-highlight h3{
+  color:var(--gold);
+  margin-bottom:20px;
+}
+
+.story-highlight ul{
+  list-style:none;
+  padding:0;
+}
+
+.story-highlight li{
+  padding:12px 0;
+  border-bottom:1px solid #eee;
+  font-weight:600;
+}
+
+.story-highlight li:last-child{
+  border-bottom:none;
+}
+
+blockquote{
+  margin-top:70px;
+  font-size:2.5rem;
+  line-height:1.4;
+  font-weight:700;
+  border-left:5px solid var(--gold);
+  padding-left:30px;
+}
+
+/* PILLARS */
+.pillars{
+  padding:140px 8%;
+  background:#111;
+}
+
+.pillars h2{
+  text-align:center;
+  color:white;
+  font-size:3.5rem;
+  margin-bottom:80px;
+}
+
+.pillar-grid{
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:35px;
+}
+
+.pillar-card{
+  background:rgba(255,255,255,.05);
+  backdrop-filter:blur(10px);
+  border:1px solid rgba(255,255,255,.1);
+  border-radius:30px;
+  overflow:hidden;
+  transition:.4s;
+}
+
+.pillar-card:hover{
+  transform:translateY(-12px);
+}
+
+.pillar-card img{
+  width:100%;
+  height:280px;
+  object-fit:cover;
+}
+
+.pillar-card h3{
+  color:var(--gold);
+  font-size:2rem;
+  padding:25px 30px 10px;
+}
+
+.pillar-card p{
+  padding:0 30px 30px;
+  color:#ddd;
+  line-height:1.9;
+  white-space:pre-line;
+}
+
+/* PHILOSOPHY */
+.philosophy{
+  padding:160px 20px;
+  text-align:center;
+  background:white;
+}
+
+.philosophy h2{
+  font-size:4.5rem;
+  margin-bottom:30px;
+}
+
+.philosophy p{
+  max-width:800px;
+  margin:auto;
+  color:#666;
+  font-size:1.15rem;
+  line-height:2;
+}
+
+/* FOOTER */
+.signature{
+  background:#111;
+  color:white;
+  text-align:center;
+  padding:120px 20px;
+}
+
+.signature h2{
+  font-size:4rem;
+  letter-spacing:4px;
+}
+
+.signature p{
+  color:var(--gold);
+  font-size:1.2rem;
+  margin:25px 0;
+}
+
+.signature span{
+  letter-spacing:4px;
+  color:#bbb;
+  text-transform:uppercase;
+}
+
+/* MOBILE */
+@media(max-width:768px){
+
+  .hero-content h1{
+    font-size:4rem;
+    letter-spacing:8px;
+  }
+
+  .brand-story h2{
+    font-size:2.5rem;
+  }
+
+  .pillar-grid{
+    grid-template-columns:1fr;
+  }
+
+  .pillars h2,
+  .philosophy h2,
+  .signature h2{
+    font-size:2.4rem;
+  }
+
+  blockquote{
+    font-size:1.6rem;
+  }
+}

@@ -1,0 +1,109 @@
+.arrival-container {
+  padding: 0px 5%;
+}
+
+.arrival-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+/* 🔥 Arrow Group (Top Right) */
+.arrow-group {
+  display: flex;
+  gap: 10px;
+}
+
+.arrow-group button {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 1px solid #ddd;
+  background: white;
+  font-size: 20px;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.arrow-group button:hover {
+  background: black;
+  color: white;
+}
+
+/* Scroll */
+.scroll-container {
+  display: flex;
+  gap: 20px;
+  overflow-x: auto;
+  scroll-behavior: smooth;
+}
+
+.scroll-container::-webkit-scrollbar {
+  display: none;
+}
+
+/* Card */
+.arrival-card {
+  min-width: 250px;
+  border: 1px solid #eee;
+  border-radius: 12px;
+  padding: 5px;
+  background: #fafafa;
+  flex-shrink: 0;
+}
+
+/* Image */
+.arrival-img {
+  position: relative;
+}
+
+.arrival-img img {
+  width: 100%;
+  height: 180px;
+  object-fit: contain;
+}
+
+/* Heart */
+/* .wishlist {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+}
+
+.wishlist:hover {
+  color: red;
+} */
+
+/* Price */
+.price {
+  display: flex;
+  gap: 5px;
+  align-items: center;
+}
+.arrival-card h3 {
+  margin: 6px 0 2px 0; /* 👈 tight spacing */
+  font-size: 15px;
+}
+.price span {
+  text-decoration: line-through;
+  color: #999;
+}
+
+.price p {
+  color: green;
+}
+
+/* Button */
+.cart-btn {
+  width: 100%;
+  padding: 5px;
+  background: black;
+  color: white;
+  border: none;
+  border-radius: 8px;
+}
+.rating {
+  margin: 0px 0;
+  font-size: 13px;
+}

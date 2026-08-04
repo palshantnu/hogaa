@@ -1,0 +1,867 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %> | Admin Panel</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { background: #f8f9fc; font-family: 'Segoe UI', sans-serif; }
+        .card { border: none; border-radius: 15px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        .image-preview { width: 80px; height: 80px; object-fit: cover; border-radius: 10px; margin: 5px; border: 2px solid #e0e0e0; }
+        .btn-primary { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none; }
+        .variations-table { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+        .variations-table table { min-width: 1400px; border-collapse: collapse; }
+        .variations-table th, .variations-table td { border: 1px solid #dee2e6; padding: 8px; vertical-align: middle; white-space: nowrap; }
+        .variations-table th { background: #f8f9fa; font-weight: 600; }
+        .variations-table td input.form-control { min-width: 90px; }
+        .variations-table td[style*="min-width"] { white-space: normal; }
+        .existing-image { position: relative; display: inline-block; margin: 5px; }
+        .remove-image { position: absolute; top: -8px; right: -8px; background: red; color: white; border-radius: 50%; width: 20px; height: 20px; text-align: center; font-size: 12px; cursor: pointer; line-height: 18px; }
+        .base-price-field { background-color: #f5f5f5; cursor: not-allowed; }
+        .variation-thumb { position: relative; display: inline-block; margin: 2px; }
+        .variation-thumb img { width: 50px; height: 50px; object-fit: cover; border-radius: 4px; border: 1px solid #ddd; }
+        .variation-thumb .remove-variation-img { position: absolute; top: -8px; right: -8px; background: red; color: white; border-radius: 50%; width: 18px; height: 18px; font-size: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+    </style>
+</head>
+<body>
+
+<div class="container-fluid px-4 py-4">
+    <div class="d-flex align-items-center mb-4">
+        <a href="/admin/products" class="btn btn-secondary me-3">
+            <i class="fas fa-arrow-left me-1"></i> Back
+        </a>
+        <h4><i class="fas fa-box text-primary me-2"></i><%= title %></h4>
+    </div>
+    
+    <div class="card">
+        <div class="card-header bg-white">
+            <ul class="nav nav-tabs card-header-tabs" id="productTab" role="tablist">
+                <li class="nav-item">
+                    <button class="nav-link active" id="basic-tab" data-bs-toggle="tab" data-bs-target="#basic" type="button">
+                        <i class="fas fa-info-circle me-1"></i>Basic Info
+                    </button>
+                </li>
+                <li class="nav-item">
+                    <button class="nav-link" id="attributes-tab" data-bs-toggle="tab" data-bs-target="#attributes" type="button">
+                        <i class="fas fa-tags me-1"></i>Attributes & Variations
+                    </button>
+                </li>
+            </ul>
+        </div>
+        <div class="card-body">
+            <form action="/admin/products/<%= product ? 'edit/' + product.id : 'add' %>" method="POST" enctype="multipart/form-data" id="productForm">
+                <div class="tab-content">
+                    <!-- Basic Info Tab -->
+                    <div class="tab-pane fade show active" id="basic">
+                        <div class="row">
+                            <div class="col-md-12 mb-3">
+                                <label class="form-label">Product Name <span class="text-danger">*</span></label>
+                                <input type="text" name="name" id="productName" class="form-control" value="<%= product ? product.name : '' %>" required>
+                            </div>
+                            
+                            <div class="col-md-12 mb-3">
+                                <label class="form-label">Slug (URL)</label>
+                                <input type="text" name="slug" id="productSlug" class="form-control" value="<%= product ? product.slug : '' %>">
+                                <small class="text-muted">Leave empty to auto-generate from product name.</small>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Category <span class="text-danger">*</span></label>
+                                <select name="category_id" class="form-select" required>
+                                    <option value="">Select Category</option>
+                                    <% if (categories && categories.length > 0) { %>
+                                        <% categories.forEach(function(cat) { %>
+                                            <option value="<%= cat.id %>" <%= product && product.category_id === cat.id ? 'selected' : '' %>>
+                                                <%= cat.name %>
+                                            </option>
+                                        <% }); %>
+                                    <% } %>
+                                </select>
+                            </div>
+                            
+                            <div class="col-md-12 mb-3">
+                                <label class="form-label">Short Description</label>
+                                <textarea name="short_description" class="form-control" rows="2"><%= product ? product.short_description : '' %></textarea>
+                            </div>
+                            
+                            <!-- <div class="col-md-12 mb-3">
+                                <label class="form-label">Full Description</label>
+                                <textarea name="description" class="form-control" rows="5"><%= product ? product.description : '' %></textarea>
+                            </div> -->
+                            
+                            <div class="col-md-12 mb-3">
+    <label class="form-label">Full Description</label>
+    <textarea name="description" id="description" class="form-control" rows="5">
+        <%= product ? product.description : '' %>
+    </textarea>
+</div>
+                            <div class="col-md-12 mb-3">
+                                <label class="form-label">Product Images</label>
+                                <input type="file" name="images" class="form-control" accept="image/*" multiple id="productImages">
+                                <small class="text-muted">You can select multiple images (JPG, PNG, GIF)</small>
+                                
+                                <!-- Existing Images Display -->
+                                <% if (product && product.images && product.images.length > 0) { %>
+                                    <div class="mt-3">
+                                        <label class="form-label">Existing Images</label>
+                                        <div id="existingImagesContainer" class="d-flex flex-wrap gap-2">
+                                            <% product.images.forEach(function(img, index) { %>
+                                                <div class="existing-image position-relative" style="width: 100px; height: 100px;" data-image="<%= img %>">
+                                                    <img src="/uploads/products/<%= img %>" class="w-100 h-100" style="object-fit: cover; border-radius: 8px; border: 2px solid #e0e0e0;">
+                                                    <button type="button" class="btn btn-sm btn-danger position-absolute top-0 end-0 m-1 rounded-circle" 
+                                                            style="width: 24px; height: 24px; padding: 0; font-size: 12px; line-height: 20px;"
+                                                            onclick="removeExistingImage('<%= img %>', this)">
+                                                        <i class="fas fa-times"></i>
+                                                    </button>
+                                                </div>
+                                            <% }); %>
+                                        </div>
+                                        <input type="hidden" name="existing_images" id="existingImages" value="<%= product.images.join(',') %>">
+                                    </div>
+                                <% } %>
+                            </div>
+
+                            <div class="col-md-12 mb-3">
+                                <label class="form-label">Product Video <span class="text-muted">(Optional)</span></label>
+                                <input type="file" name="product_video" class="form-control" accept="video/*" id="productVideo">
+                                <small class="text-muted">Optional video upload (MP4, MOV, AVI, MKV, WEBM)</small>
+
+                                <% if (product && product.product_video) { %>
+                                    <div class="mt-3" id="existingVideoContainer">
+                                        <label class="form-label">Existing Video</label>
+                                        <div class="position-relative d-inline-block" style="max-width: 320px;">
+                                            <video src="/uploads/products/<%= product.product_video %>" controls style="width: 100%; border-radius: 8px; border: 2px solid #e0e0e0;"></video>
+                                            <button type="button" class="btn btn-sm btn-danger position-absolute top-0 end-0 m-1 rounded-circle"
+                                                    style="width: 24px; height: 24px; padding: 0; font-size: 12px; line-height: 20px;"
+                                                    onclick="removeExistingVideo(this)">
+                                                <i class="fas fa-times"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <input type="hidden" name="existing_video" id="existingVideo" value="<%= product.product_video %>">
+                                <% } else { %>
+                                    <input type="hidden" name="existing_video" id="existingVideo" value="">
+                                <% } %>
+                            </div>
+
+                            <!-- Is Online Section (simple products only) -->
+                            <div class="col-md-12 mb-3" id="productIsOnlineCard" style="<%= product && product.has_variations ? 'display:none' : 'display:block' %>">
+                                <div class="card border-0 bg-light p-3 rounded-3">
+                                    <div class="d-flex align-items-center gap-3 mb-2">
+                                        <label class="form-label mb-0 fw-semibold">Is Online</label>
+                                        <div class="form-check form-switch mb-0">
+                                            <input class="form-check-input" type="checkbox" role="switch"
+                                                   name="is_online" id="isOnlineToggle" value="true"
+                                                   <%= product && product.is_online ? 'checked' : '' %>
+                                                   onchange="toggleOnlineFields()">
+                                        </div>
+                                    </div>
+                                    <small class="text-muted d-block mb-3">If enabled, a "Buy Online" button will appear on the product page.</small>
+
+                                    <div id="onlineFields" style="<%= product && product.is_online ? 'display:block' : 'display:none' %>">
+                                        <div id="simpleRetailersList"></div>
+                                        <button type="button" class="btn btn-sm btn-outline-primary mt-1"
+                                                onclick="addSimpleRetailer()">
+                                            <i class="fas fa-plus me-1"></i>Add Retailer
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                    
+                    <!-- Attributes & Variations Tab -->
+                    <div class="tab-pane fade" id="attributes">
+                        <div class="mb-4">
+                            <h6 class="mb-3">Product Type</h6>
+                            <div class="btn-group">
+                                <input type="radio" class="btn-check" name="product_type" id="simpleProduct" value="simple" autocomplete="off" <%= !product || !product.has_variations ? 'checked' : '' %>>
+                                <label class="btn btn-outline-primary" for="simpleProduct">Simple Product</label>
+                                
+                                <input type="radio" class="btn-check" name="product_type" id="variableProduct" value="variable" autocomplete="off" <%= product && product.has_variations ? 'checked' : '' %>>
+                                <label class="btn btn-outline-primary" for="variableProduct">Variable Product</label>
+                            </div>
+                        </div>
+                        
+                        <!-- Simple Product Fields -->
+                        <div id="simpleProductFields" style="<%= product && product.has_variations ? 'display: none;' : 'display: block;' %>">
+                            <div class="row">
+                                <div class="col-md-3 mb-3">
+                                    <label class="form-label">Regular Price (GST Inclusive) <span class="text-danger">*</span></label>
+                                    <input type="number" step="0.01" name="price" id="simple_price" class="form-control" value="<%= product ? product.price : '' %>">
+                                </div>
+                                <div class="col-md-3 mb-3">
+                                    <label class="form-label">Base Price (Excluding GST)</label>
+                                    <input type="text" id="base_price_display" class="form-control base-price-field" readonly value="<%= product ? '₹' + (parseFloat(product.base_price || product.price).toFixed(2)) : '₹0.00' %>">
+                                    <input type="hidden" name="base_price" id="base_price_hidden" value="<%= product ? product.base_price : '' %>">
+                                </div>
+                                <div class="col-md-3 mb-3">
+                                    <label class="form-label">Compare Price</label>
+                                    <input type="number" step="0.01" name="compare_price" class="form-control" value="<%= product ? product.compare_price : '' %>">
+                                </div>
+                                <div class="col-md-3 mb-3">
+                                    <label class="form-label">Stock</label>
+                                    <input type="number" name="stock" class="form-control" value="<%= product ? product.stock : 0 %>">
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-4 mb-3">
+                                    <label class="form-label">CGST Rate (%)</label>
+                                    <input type="number" step="0.01" name="cgst_rate" id="simple_cgst" class="form-control" value="<%= product ? product.cgst_rate : 0 %>">
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label class="form-label">SGST Rate (%)</label>
+                                    <input type="number" step="0.01" name="sgst_rate" id="simple_sgst" class="form-control" value="<%= product ? product.sgst_rate : 0 %>">
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label class="form-label">IGST Rate (%)</label>
+                                    <input type="number" step="0.01" name="igst_rate" id="simple_igst" class="form-control" value="<%= product ? product.igst_rate : 0 %>">
+                                </div>
+                            </div>
+                            <div class="alert alert-info mt-2">
+                                <small><i class="fas fa-info-circle"></i> Base Price is auto-calculated: Price ÷ (1 + GST%)</small>
+                            </div>
+                        </div>
+                        
+                        <!-- Variable Product Fields -->
+                        <div id="variableProductFields" style="<%= product && product.has_variations ? 'display: block;' : 'display: none;' %>">
+                            <div class="mb-3">
+                                <label class="form-label">Select Attributes</label>
+                                <div id="attributeSelector">
+                                    <% if (globalAttributes && globalAttributes.length > 0) { %>
+                                        <% globalAttributes.forEach(function(attr) { 
+                                            var isChecked = false;
+                                            if (product && product.has_variations && productAttributes) {
+                                                isChecked = productAttributes.some(function(pa) { return pa.id === attr.id; });
+                                            }
+                                        %>
+                                            <div class="form-check mb-2">
+                                                <input class="form-check-input attribute-checkbox" type="checkbox" 
+                                                       value="<%= attr.id %>" id="attr_<%= attr.id %>" 
+                                                       data-name="<%= attr.name %>" data-type="<%= attr.type %>"
+                                                       <%= isChecked ? 'checked' : '' %>>
+                                                <label class="form-check-label" for="attr_<%= attr.id %>">
+                                                    <%= attr.name %>
+                                                    <span class="badge bg-secondary"><%= attr.type %></span>
+                                                </label>
+                                            </div>
+                                        <% }); %>
+                                    <% } %>
+                                </div>
+                                <button type="button" class="btn btn-sm btn-info mt-2" onclick="generateVariations()">
+                                    <i class="fas fa-magic me-1"></i>Generate Variations
+                                </button>
+                            </div>
+                            <div id="variationsContainer"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mt-4 pt-2">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save me-2"></i>Save Product
+                    </button>
+                    <a href="/admin/products" class="btn btn-secondary ms-2">
+                        <i class="fas fa-times me-1"></i>Cancel
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<script src="https://cdn.ckeditor.com/4.21.0/standard/ckeditor.js"></script>
+
+<script>
+    CKEDITOR.replace('description');
+</script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+// Calculate Base Price function
+function calculateBasePrice() {
+    var price = parseFloat($('#simple_price').val()) || 0;
+    var cgst = parseFloat($('#simple_cgst').val()) || 0;
+    var sgst = parseFloat($('#simple_sgst').val()) || 0;
+    var igst = parseFloat($('#simple_igst').val()) || 0;
+    
+    var totalGst = cgst + sgst + igst;
+    var basePrice = price;
+    
+    if (totalGst > 0) {
+        basePrice = (price * 100) / (100 + totalGst);
+    }
+    
+    $('#base_price_display').val('₹' + basePrice.toFixed(2));
+    $('#base_price_hidden').val(basePrice.toFixed(2));
+}
+
+// For variations
+function calculateVariationBasePrice(index) {
+    var price = parseFloat($(`input[name="variations[${index}][price]"]`).val()) || 0;
+    var cgst = parseFloat($(`input[name="variations[${index}][cgst_rate]"]`).val()) || 0;
+    var sgst = parseFloat($(`input[name="variations[${index}][sgst_rate]"]`).val()) || 0;
+    var igst = parseFloat($(`input[name="variations[${index}][igst_rate]"]`).val()) || 0;
+    
+    var totalGst = cgst + sgst + igst;
+    var basePrice = price;
+    
+    if (totalGst > 0) {
+        basePrice = (price * 100) / (100 + totalGst);
+    }
+    
+    $(`#base_price_display_${index}`).text('₹' + basePrice.toFixed(2));
+    $(`input[name="variations[${index}][base_price]"]`).val(basePrice.toFixed(2));
+}
+
+// Toggle between simple and variable product
+$('input[name="product_type"]').change(function() {
+    if ($(this).val() === 'simple') {
+        $('#simpleProductFields').show();
+        $('#variableProductFields').hide();
+        $('#productIsOnlineCard').show();
+    } else {
+        $('#simpleProductFields').hide();
+        $('#variableProductFields').show();
+        $('#productIsOnlineCard').hide();
+        <% if (variations && variations.length > 0) { %>
+            setTimeout(function() { loadExistingVariations(); }, 100);
+        <% } %>
+    }
+});
+
+// Auto-generate slug from product name
+$('#productName').on('keyup', function() {
+    if ($('#productSlug').val() === '') {
+        var slug = $(this).val().toLowerCase()
+            .replace(/[^a-z0-9]+/g, '-')
+            .replace(/^-|-$/g, '');
+        $('#productSlug').val(slug);
+    }
+});
+
+// Bind events for simple product
+$('#simple_price, #simple_cgst, #simple_sgst, #simple_igst').on('input', function() {
+    calculateBasePrice();
+});
+
+var selectedAttributes = [];
+
+function initSelectedAttributes() {
+    selectedAttributes = [];
+    $('.attribute-checkbox:checked').each(function() {
+        selectedAttributes.push({
+            id: $(this).val(),
+            name: $(this).data('name'),
+            type: $(this).data('type')
+        });
+    });
+}
+
+$('.attribute-checkbox').change(function() {
+    initSelectedAttributes();
+});
+
+function generateVariations() {
+    initSelectedAttributes();
+    
+    if (selectedAttributes.length === 0) {
+        alert('Please select at least one attribute');
+        return;
+    }
+    
+    var attrIds = selectedAttributes.map(function(a) { return a.id; });
+    
+    $.ajax({
+        url: '/admin/products/attributes/get-values',
+        method: 'POST',
+        data: { attribute_ids: attrIds },
+        success: function(response) {
+            buildVariationMatrix(response);
+        },
+        error: function() {
+            alert('Error fetching attribute values');
+        }
+    });
+}
+
+function removeExistingImage(imageName, buttonElement) {
+    if (confirm('Are you sure you want to remove this image?')) {
+        // Remove the image div
+        $(buttonElement).closest('.existing-image').remove();
+        
+        // Update the hidden field with remaining images
+        var remainingImages = [];
+        $('#existingImagesContainer .existing-image').each(function() {
+            var img = $(this).data('image');
+            if (img) {
+                remainingImages.push(img);
+            }
+        });
+        $('#existingImages').val(remainingImages.join(','));
+        
+        // Send AJAX request to delete image from server
+        $.ajax({
+            url: '/admin/products/<%= product ? product.id : '' %>/delete-image/' + encodeURIComponent(imageName),
+            method: 'POST',
+            success: function(response) {
+                if (response.success) {
+                    console.log('Image deleted successfully');
+                } else {
+                    console.error('Error deleting image');
+                }
+            },
+            error: function() {
+                console.error('Error deleting image');
+            }
+        });
+    }
+}
+
+function removeExistingVideo(buttonElement) {
+    if (confirm('Are you sure you want to remove this video?')) {
+        $('#existingVideo').val('');
+        $(buttonElement).closest('#existingVideoContainer').remove();
+
+        $.ajax({
+            url: '/admin/products/delete-video/<%= product ? product.id : '' %>',
+            method: 'POST',
+            success: function(response) {
+                if (response.success) {
+                    console.log('Video deleted successfully');
+                } else {
+                    console.error('Error deleting video');
+                }
+            },
+            error: function() {
+                console.error('Error deleting video');
+            }
+        });
+    }
+}
+
+// Function to remove variation image
+function removeVariationImage(variationId, imageName, buttonElement) {
+    if (confirm('Are you sure you want to remove this variation image?')) {
+        // Remove the image div
+        $(buttonElement).closest('.variation-thumb').remove();
+        
+        // Send AJAX request to delete image from server
+        $.ajax({
+            url: `/admin/products/variation-image/${variationId}/${encodeURIComponent(imageName)}`,
+            method: 'DELETE',
+            success: function(response) {
+                if (response.success) {
+                    console.log('Variation image deleted successfully');
+                    // Check if no images left in this variation
+                    if ($(`#variation_images_${variationId}_container .variation-thumb`).length === 0) {
+                        $(`#variation_images_${variationId}_container`).html('<small class="text-muted">No images</small>');
+                    }
+                } else {
+                    console.error('Error deleting variation image');
+                }
+            },
+            error: function() {
+                console.error('Error deleting variation image');
+            }
+        });
+    }
+}
+
+// Image preview for variation images
+$(document).on('change', 'input[type="file"][name^="variation_images_"]', function() {
+    var index = $(this).attr('name').match(/\d+/)[0];
+    var previewContainer = $(this).siblings('.variation-image-preview');
+    
+    if (previewContainer.length === 0) {
+        $(this).after('<div class="variation-image-preview d-flex flex-wrap gap-1 mt-2"></div>');
+        previewContainer = $(this).siblings('.variation-image-preview');
+    }
+    
+    previewContainer.empty();
+    
+    if (this.files) {
+        Array.from(this.files).forEach(file => {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                previewContainer.append(`
+                    <div class="variation-thumb" style="width: 50px; height: 50px;">
+                        <img src="${e.target.result}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 4px; border: 1px solid #ddd;">
+                    </div>
+                `);
+            };
+            reader.readAsDataURL(file);
+        });
+    }
+});
+
+// Validate form before submission
+$('#productForm').on('submit', function(e) {
+    var productType = $('input[name="product_type"]:checked').val();
+    var hasImages = false;
+    
+    // Check if there are existing images
+    var existingImagesCount = $('#existingImagesContainer .existing-image').length || 0;
+    
+    // Check if new images are selected
+    var newImages = $('#productImages')[0].files.length;
+    
+    if (productType === 'simple') {
+        hasImages = (existingImagesCount > 0 || newImages > 0);
+    } else {
+        // For variable products, check if any variation has images
+        var hasVariationImages = false;
+        
+        // Check for existing variation images in the DOM
+        if ($('.existing-variation-images .variation-thumb').length > 0) {
+            hasVariationImages = true;
+        }
+        
+        // Check for newly uploaded variation images
+        $('input[type="file"][name^="variation_images_"]').each(function() {
+            if (this.files.length > 0) {
+                hasVariationImages = true;
+            }
+        });
+        
+        hasImages = (existingImagesCount > 0 || newImages > 0 || hasVariationImages);
+    }
+    
+    if (!hasImages) {
+        e.preventDefault();
+        alert('Please add at least one product image before saving.');
+        return false;
+    }
+    
+    return true;
+});
+
+function buildVariationMatrix(attributeValues) {
+    var combinations = [];
+    
+    function combine(current, index) {
+        if (index === attributeValues.length) {
+            combinations.push(current.slice());
+            return;
+        }
+        
+        for (var i = 0; i < attributeValues[index].values.length; i++) {
+            current.push(attributeValues[index].values[i]);
+            combine(current, index + 1);
+            current.pop();
+        }
+    }
+    
+    combine([], 0);
+    
+    var html = '<h6 class="mt-4 mb-3">Product Variations</h6>';
+    html += '<div class="table-responsive variations-table">';
+    html += '<table class="table table-bordered">';
+    html += '<thead><tr>';
+    
+    for (var i = 0; i < selectedAttributes.length; i++) {
+        html += '<th>' + selectedAttributes[i].name + '</th>';
+    }
+    html += '<th>Base Price</th><th>Price (₹)</th><th>Compare Price</th><th>Stock</th>';
+    html += '<th>CGST (%)</th><th>SGST (%)</th><th>IGST (%)</th>';
+    html += '<th>Images</th><th>Is Online</th><th>Actions</th>';
+    html += '<tr></thead><tbody>';
+    
+    for (var idx = 0; idx < combinations.length; idx++) {
+        var combo = combinations[idx];
+        html += '<tr>';
+        
+        for (var j = 0; j < combo.length; j++) {
+            var value = combo[j];
+            html += '<td>' + value.value + 
+                    '<input type="hidden" name="variations[' + idx + '][attribute_' + value.attribute_id + ']" value="' + value.id + '">' +
+                    '</td>';
+        }
+        
+        html += `<td><span id="base_price_display_${idx}">₹0.00</span>
+                 <input type="hidden" name="variations[${idx}][base_price]" value="0">
+                </td>`;
+        html += `<td><input type="number" step="0.01" name="variations[${idx}][price]" class="form-control form-control-sm" required oninput="calculateVariationBasePrice(${idx})"></td>`;
+        html += `<td><input type="number" step="0.01" name="variations[${idx}][compare_price]" class="form-control form-control-sm"></td>`;
+        html += `<td><input type="number" name="variations[${idx}][stock]" class="form-control form-control-sm" value="0"></td>`;
+        html += `<td><input type="number" step="0.01" name="variations[${idx}][cgst_rate]" class="form-control form-control-sm" value="0" oninput="calculateVariationBasePrice(${idx})"></td>`;
+        html += `<td><input type="number" step="0.01" name="variations[${idx}][sgst_rate]" class="form-control form-control-sm" value="0" oninput="calculateVariationBasePrice(${idx})"></td>`;
+        html += `<td><input type="number" step="0.01" name="variations[${idx}][igst_rate]" class="form-control form-control-sm" value="0" oninput="calculateVariationBasePrice(${idx})"></td>`;
+        html += `<td><input type="file" name="variation_images_${idx}" class="form-control form-control-sm" accept="image/*" multiple>
+                 <div class="variation-image-preview d-flex flex-wrap gap-1 mt-2"></div></td>`;
+        html += `<td style="min-width:220px">
+                    <div class="form-check form-switch mb-2">
+                        <input class="form-check-input var-online-toggle" type="checkbox" role="switch"
+                               name="variations[${idx}][is_online]" value="true"
+                               id="var_online_${idx}" onchange="toggleVarOnlineFields(${idx})">
+                        <label class="form-check-label small fw-semibold" for="var_online_${idx}">Is Online</label>
+                    </div>
+                    <div id="var_online_fields_${idx}" style="display:none">
+                        <div id="var_retailers_list_${idx}"></div>
+                        <button type="button" class="btn btn-xs btn-outline-primary mt-1"
+                                style="font-size:11px;padding:2px 8px;"
+                                onclick="addVarRetailer(${idx})">
+                            <i class="fas fa-plus"></i> Add Retailer
+                        </button>
+                    </div>
+                 </td>`;
+        html += `<td><button type="button" class="btn btn-sm btn-danger" onclick="$(this).closest('tr').remove()"><i class="fas fa-trash"></i></button></td>`;
+        
+        html += '</tr>';
+    }
+    
+    html += '</tbody> nahil</div>';
+    $('#variationsContainer').html(html);
+}
+
+// Load existing variations for edit mode
+<% if (product && product.has_variations && variations && variations.length > 0) { %>
+    $(document).ready(function() {
+        initSelectedAttributes();
+        setTimeout(function() {
+            loadExistingVariations();
+        }, 500);
+    });
+    
+    function loadExistingVariations() {
+        var existingVariations = <%- JSON.stringify(variations) %>;
+        var productAttrs = <%- JSON.stringify(productAttributes) %>;
+        
+        if (existingVariations.length === 0) return;
+        
+        // Prepare attribute values array
+        var attributeValuesArray = [];
+        for (var i = 0; i < productAttrs.length; i++) {
+            var attr = productAttrs[i];
+            var values = [];
+            if (attr.values && attr.values.length) {
+                for (var j = 0; j < attr.values.length; j++) {
+                    values.push({
+                        id: attr.values[j].id,
+                        attribute_id: attr.id,
+                        value: attr.values[j].value
+                    });
+                }
+            }
+            attributeValuesArray.push({
+                attribute_id: attr.id,
+                attribute_name: attr.name,
+                values: values
+            });
+            
+            $('#attr_' + attr.id).prop('checked', true);
+            if (!selectedAttributes.find(function(a) { return a.id === attr.id; })) {
+                selectedAttributes.push({
+                    id: attr.id,
+                    name: attr.name
+                });
+            }
+        }
+        
+        // Build variations with existing data
+        var combinations = [];
+        function combine(current, index) {
+            if (index === attributeValuesArray.length) {
+                combinations.push(current.slice());
+                return;
+            }
+            for (var k = 0; k < attributeValuesArray[index].values.length; k++) {
+                current.push(attributeValuesArray[index].values[k]);
+                combine(current, index + 1);
+                current.pop();
+            }
+        }
+        combine([], 0);
+        
+        var html = '<h6 class="mt-4 mb-3">Product Variations</h6>';
+        html += '<div class="table-responsive variations-table">';
+        html += '<table class="table table-bordered">';
+        html += '<thead><tr>';
+        for (var i = 0; i < productAttrs.length; i++) {
+            html += '<th>' + productAttrs[i].name + '</th>';
+        }
+        html += '<th>Base Price</th><th>Price (₹)</th><th>Compare Price</th><th>Stock</th>';
+        html += '<th>CGST (%)</th><th>SGST (%)</th><th>IGST (%)</th>';
+        html += '<th>Images</th><th>Is Online</th><th>Actions</th>';
+        html += '</tr></thead><tbody>';
+        
+        for (var idx = 0; idx < combinations.length; idx++) {
+            var combo = combinations[idx];
+            var comboKey = combo.map(function(v) { return v.value; }).join('-');
+            
+            var existingVar = null;
+            for (var v = 0; v < existingVariations.length; v++) {
+                if (existingVariations[v].attributes) {
+                    var varKey = existingVariations[v].attributes.map(function(a) { 
+                        return a.attribute_value.value; 
+                    }).join('-');
+                    if (varKey === comboKey) {
+                        existingVar = existingVariations[v];
+                        break;
+                    }
+                }
+            }
+            
+            html += '<tr>';
+            for (var c = 0; c < combo.length; c++) {
+                html += '<td>' + combo[c].value + 
+                        '<input type="hidden" name="variations[' + idx + '][attribute_' + combo[c].attribute_id + ']" value="' + combo[c].id + '">' +
+                        '</td>';
+            }
+            
+            var basePriceValue = existingVar ? (existingVar.base_price || existingVar.price) : 0;
+            html += `<td><span id="base_price_display_${idx}">₹${parseFloat(basePriceValue).toFixed(2)}</span>
+                     <input type="hidden" name="variations[${idx}][base_price]" value="${basePriceValue}">
+                    </td>`;
+            html += `<td><input type="number" step="0.01" name="variations[${idx}][price]" class="form-control form-control-sm" value="${existingVar ? existingVar.price : ''}" required oninput="calculateVariationBasePrice(${idx})"></td>`;
+            html += `<td><input type="number" step="0.01" name="variations[${idx}][compare_price]" class="form-control form-control-sm" value="${existingVar ? (existingVar.compare_price || '') : ''}"></td>`;
+            html += `<td><input type="number" name="variations[${idx}][stock]" class="form-control form-control-sm" value="${existingVar ? existingVar.stock : 0}"></td>`;
+            html += `<td><input type="number" step="0.01" name="variations[${idx}][cgst_rate]" class="form-control form-control-sm" value="${existingVar ? existingVar.cgst_rate : 0}" oninput="calculateVariationBasePrice(${idx})"></td>`;
+            html += `<td><input type="number" step="0.01" name="variations[${idx}][sgst_rate]" class="form-control form-control-sm" value="${existingVar ? existingVar.sgst_rate : 0}" oninput="calculateVariationBasePrice(${idx})"></td>`;
+            html += `<td><input type="number" step="0.01" name="variations[${idx}][igst_rate]" class="form-control form-control-sm" value="${existingVar ? existingVar.igst_rate : 0}" oninput="calculateVariationBasePrice(${idx})"></td>`;
+            
+            // Images column with thumbnails
+            html += `<td>`;
+            html += `<input type="file" name="variation_images_${idx}" class="form-control form-control-sm mb-2" accept="image/*" multiple>`;
+            html += `<div class="existing-variation-images d-flex flex-wrap gap-1" id="variation_images_${existingVar ? existingVar.id : idx}_container">`;
+            
+            if (existingVar && existingVar.images && existingVar.images.length > 0) {
+                existingVar.images.forEach(function(img) {
+                    html += `
+                        <div class="variation-thumb" style="width: 50px; height: 50px;" data-image="${img}">
+                            <img src="/uploads/products/variations/${img}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 4px; border: 1px solid #ddd;">
+                            <button type="button" class="remove-variation-img" onclick="removeVariationImage(${existingVar.id}, '${img}', this)">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    `;
+                });
+            } else {
+                html += `<small class="text-muted">No images</small>`;
+            }
+            
+            html += `</div>`;
+            html += `<input type="hidden" name="variations[${idx}][id]" value="${existingVar ? existingVar.id : ''}">`;
+            html += `</div></td>`;
+
+            var varIsOnline = existingVar && existingVar.is_online;
+            var varRetailers = existingVar && existingVar.online_retailers ? existingVar.online_retailers : [];
+            html += `<td style="min-width:220px">
+                        <div class="form-check form-switch mb-2">
+                            <input class="form-check-input var-online-toggle" type="checkbox" role="switch"
+                                   name="variations[${idx}][is_online]" value="true"
+                                   id="var_online_${idx}" ${varIsOnline ? 'checked' : ''}
+                                   onchange="toggleVarOnlineFields(${idx})">
+                            <label class="form-check-label small fw-semibold" for="var_online_${idx}">Is Online</label>
+                        </div>
+                        <div id="var_online_fields_${idx}" style="${varIsOnline ? 'display:block' : 'display:none'}">
+                            <div id="var_retailers_list_${idx}"></div>
+                            <button type="button" class="btn btn-xs btn-outline-primary mt-1"
+                                    style="font-size:11px;padding:2px 8px;"
+                                    onclick="addVarRetailer(${idx})">
+                                <i class="fas fa-plus"></i> Add Retailer
+                            </button>
+                        </div>
+                     </td>`;
+
+            html += `<td><button type="button" class="btn btn-sm btn-danger" onclick="$(this).closest('tr').remove()"><i class="fas fa-trash"></i></button></td>`;
+            
+            html += '</tr>';
+            
+            // Calculate base price for this variation
+            setTimeout(function(idx) {
+                calculateVariationBasePrice(idx);
+            }, 100, idx);
+        }
+        
+        html += '</tbody></div>';
+        $('#variationsContainer').html(html);
+
+        // Pre-populate existing retailers for each variation
+        for (var vi = 0; vi < combinations.length; vi++) {
+            var combo = combinations[vi];
+            var comboKey2 = combo.map(function(v) { return v.value; }).join('-');
+            var exVar = null;
+            for (var ev = 0; ev < existingVariations.length; ev++) {
+                if (existingVariations[ev].attributes) {
+                    var evKey = existingVariations[ev].attributes.map(function(a) { return a.attribute_value.value; }).join('-');
+                    if (evKey === comboKey2) { exVar = existingVariations[ev]; break; }
+                }
+            }
+            if (exVar && exVar.online_retailers && exVar.online_retailers.length > 0) {
+                exVar.online_retailers.forEach(function(r) {
+                    addVarRetailer(vi, r.title, r.url, r.image);
+                });
+            }
+        }
+    }
+<% } %>
+
+// ===== Is Online toggle helpers =====
+function toggleVarOnlineFields(idx) {
+    var checked = $('#var_online_' + idx).is(':checked');
+    $('#var_online_fields_' + idx)[checked ? 'slideDown' : 'slideUp'](150);
+}
+
+function toggleOnlineFields() {
+    var checked = $('#isOnlineToggle').is(':checked');
+    $('#onlineFields')[checked ? 'slideDown' : 'slideUp'](200);
+}
+
+// ===== Simple product retailers =====
+var simpleRetailerCount = 0;
+function addSimpleRetailer(title, url, image) {
+    var idx = simpleRetailerCount++;
+    var existingImgHtml = image
+        ? '<img src="/uploads/products/' + image + '" style="width:40px;height:40px;object-fit:cover;border-radius:4px;border:1px solid #ddd;" class="mb-1 d-block"><input type="hidden" name="retailers[' + idx + '][existing_image]" value="' + image + '">'
+        : '';
+    var html = '<div class="retailer-row border rounded p-2 mb-2 bg-white">' +
+        '<div class="row g-2 align-items-end">' +
+        '<div class="col-md-3"><label class="form-label small mb-1">Retailer Name</label>' +
+        '<input type="text" name="retailers[' + idx + '][title]" class="form-control form-control-sm" placeholder="e.g. Amazon" value="' + (title || '') + '"></div>' +
+        '<div class="col-md-5"><label class="form-label small mb-1">URL</label>' +
+        '<input type="url" name="retailers[' + idx + '][url]" class="form-control form-control-sm" placeholder="https://..." value="' + (url || '') + '"></div>' +
+        '<div class="col-md-3"><label class="form-label small mb-1">Logo / Image</label>' +
+        existingImgHtml +
+        '<input type="file" name="online_img_' + idx + '" class="form-control form-control-sm" accept="image/*"></div>' +
+        '<div class="col-md-1 d-flex align-items-end"><button type="button" class="btn btn-sm btn-outline-danger w-100" onclick="$(this).closest(\'.retailer-row\').remove()"><i class="fas fa-trash"></i></button></div>' +
+        '</div></div>';
+    $('#simpleRetailersList').append(html);
+}
+
+// ===== Variation retailers =====
+var varRetailerCounts = {};
+function addVarRetailer(varIdx, title, url, image) {
+    if (!varRetailerCounts[varIdx]) varRetailerCounts[varIdx] = 0;
+    var rIdx = varRetailerCounts[varIdx]++;
+    var existingImgHtml = image
+        ? '<img src="/uploads/products/' + image + '" style="width:36px;height:36px;object-fit:cover;border-radius:4px;border:1px solid #ddd;" class="mb-1 d-block"><input type="hidden" name="variations[' + varIdx + '][retailers][' + rIdx + '][existing_image]" value="' + image + '">'
+        : '';
+    var html = '<div class="var-retailer-row border rounded p-2 mb-1 bg-white">' +
+        '<div class="d-flex gap-1 align-items-center mb-1">' +
+        '<input type="text" name="variations[' + varIdx + '][retailers][' + rIdx + '][title]" class="form-control form-control-sm" placeholder="Name" value="' + (title || '') + '" style="flex:1">' +
+        '<button type="button" class="btn btn-sm btn-outline-danger p-1" style="line-height:1" onclick="$(this).closest(\'.var-retailer-row\').remove()"><i class="fas fa-times"></i></button>' +
+        '</div>' +
+        '<input type="url" name="variations[' + varIdx + '][retailers][' + rIdx + '][url]" class="form-control form-control-sm mb-1" placeholder="https://..." value="' + (url || '') + '">' +
+        existingImgHtml +
+        '<input type="file" name="var_online_img_' + varIdx + '_' + rIdx + '" class="form-control form-control-sm" accept="image/*">' +
+        '</div>';
+    $('#var_retailers_list_' + varIdx).append(html);
+}
+
+// Initialize base price calculation on page load
+$(document).ready(function() {
+    calculateBasePrice();
+    initSelectedAttributes();
+    <% if (product && product.is_online && product.online_retailers && product.online_retailers.length > 0) { %>
+        var existingSimpleRetailers = <%- JSON.stringify(product.online_retailers) %>;
+        existingSimpleRetailers.forEach(function(r) {
+            addSimpleRetailer(r.title, r.url, r.image);
+        });
+    <% } %>
+});
+</script>
+</body>
+</html>

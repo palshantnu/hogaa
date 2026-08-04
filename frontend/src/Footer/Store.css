@@ -1,0 +1,136 @@
+.hogaa-store-container {
+  width: 100%;
+  height: 90vh; /* Takes most of the screen */
+  background-color: #f8f8f8;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 40px 20px;
+}
+
+.store-wrapper {
+  width: 100%;
+  max-width: 1100px;
+  height: 600px;
+  background: #fff;
+  display: flex;
+  border-radius: 8px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+  overflow: hidden;
+  border: 1px solid #e0e0e0;
+}
+
+/* Left Panel Styling */
+.store-info-panel {
+  width: 40%;
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid #eee;
+}
+
+.search-section {
+  padding: 20px;
+  border-bottom: 2px solid #000; /* Dark divider as seen in screenshot */
+}
+
+.search-input-wrapper {
+  display: flex;
+  align-items: center;
+  background: #f9f9f9;
+  padding: 12px;
+  border: 1px solid #eee;
+  border-radius: 4px;
+  margin-bottom: 15px;
+}
+
+.search-input-wrapper input {
+  border: none;
+  background: transparent;
+  width: 100%;
+  padding-left: 10px;
+  outline: none;
+  font-size: 14px;
+}
+
+.search-icon, .gps-icon { color: #888; cursor: pointer; }
+
+.distance-filter {
+  display: flex;
+  justify-content: space-between;
+  font-weight: 700;
+  font-size: 13px;
+  padding: 5px 0;
+}
+
+/* Store Card */
+.store-details-card {
+  padding: 30px 20px;
+  flex: 1;
+}
+
+.store-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #000;
+  margin-bottom: 15px;
+  line-height: 1.4;
+}
+
+.store-address {
+  font-size: 14px;
+  color: #666;
+  margin-bottom: 25px;
+  line-height: 1.6;
+}
+
+.store-meta-info {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.meta-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+  color: #333;
+}
+
+.status-closed {
+  color: #666;
+  display: flex;
+  align-items: center;
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  background: green; /* Pinkish-red dot for closed */
+  border-radius: 50%;
+  margin-right: 8px;
+}
+
+.distance-tag {
+  display: inline-block;
+  background: #eeeeee;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  width: fit-content;
+  margin-top: 15px;
+  border-radius: 4px;
+}
+
+/* Map Panel Styling */
+.store-map-panel {
+  width: 60%;
+  background: #e5e5e5;
+}
+
+/* Responsive */
+@media (max-width: 850px) {
+  .store-wrapper { flex-direction: column; height: auto; }
+  .store-info-panel, .store-map-panel { width: 100%; }
+  .store-map-panel { height: 350px; }
+}

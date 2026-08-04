@@ -1,0 +1,126 @@
+.hogga-newsletter-section {
+  padding: 60px 5%;
+  background: #ffffff;
+}
+
+.hogga-newsletter-card {
+  background-color: #e8f4fc; /* Light blue from reference image */
+  border-radius: 30px;
+  padding: 70px 60px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 50px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* Left Side Content */
+.hogga-newsletter-left {
+  flex: 1;
+}
+
+.hogga-discount-text {
+  font-size: 45px;
+  font-weight: 800;
+  color: #1a1a1a;
+  line-height: 1.2;
+  margin-bottom: 20px;
+  font-family: 'Playfair Display', serif; /* Makeup brands ke liye elegant font */
+}
+
+.hogga-gold {
+  color: #ffb800; /* Gold highlight for discount */
+}
+
+.hogga-newsletter-desc {
+  font-size: 16px;
+  color: #555;
+  line-height: 1.6;
+  max-width: 480px;
+}
+
+/* Right Side Form */
+.hogga-newsletter-right {
+  flex: 1;
+  max-width: 450px;
+  width: 100%;
+}
+
+.hogga-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.hogga-input-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.hogga-input-field label {
+  font-size: 14px;
+  color: #777;
+  font-weight: 500;
+}
+
+.hogga-input-field input {
+  padding: 15px 18px;
+  border-radius: 12px;
+  border: 1px solid #ffffff;
+  background: #ffffff;
+  font-size: 15px;
+  outline: none;
+  transition: 0.3s ease;
+}
+
+.hogga-input-field input:focus {
+  border-color: #ffb800;
+}
+
+.hogga-checkbox-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+  color: #666;
+}
+
+.hogga-checkbox-wrapper input {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+}
+
+.hogga-submit-btn {
+  background: #1a1a1a;
+  color: #ffffff;
+  border: none;
+  padding: 16px;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: 0.3s;
+  margin-top: 10px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.hogga-submit-btn:hover {
+  background: #e91e63; /* hogaa Signature Pink */
+  box-shadow: 0 5px 15px rgba(233, 30, 99, 0.3);
+}
+
+/* Responsive */
+@media (max-width: 992px) {
+  .hogga-newsletter-card {
+    flex-direction: column;
+    padding: 40px;
+    text-align: center;
+  }
+  .hogga-newsletter-desc { margin: 0 auto; }
+  .hogga-checkbox-wrapper { justify-content: center; }
+  .hogga-discount-text { font-size: 32px; }
+}
