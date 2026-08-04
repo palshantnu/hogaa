@@ -81,6 +81,7 @@ router.get('/attributes/delete-value/:id', adminController.deleteAttributeValue)
 router.post('/attributes/get-values', adminController.getAttributeValues);
 router.delete('/delete-image/:id/:image', adminController.deleteProductImage);
 router.delete('/variation-image/:variationId/:imageName', adminController.deleteVariationImage);
+router.put('/variation-image/:variationId/reorder', adminController.reorderVariationImages);
 
 
 module.exports = router;

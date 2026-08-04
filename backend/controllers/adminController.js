@@ -1526,6 +1526,33 @@ deleteVariationImage: async (req, res) => {
     }
 },
 
+reorderVariationImages: async (req, res) => {
+    try {
+        const variation = await ProductVariation.findByPk(req.params.variationId);
+        if (!variation) {
+            return res.status(404).json({ success: false, message: 'Variation not found' });
+        }
+
+        const currentImages = variation.images || [];
+        const newOrder = Array.isArray(req.body.images) ? req.body.images : [];
+
+        // Only accept a reordering of the images that already exist on this variation
+        const isSameSet = newOrder.length === currentImages.length &&
+            newOrder.every(img => currentImages.includes(img));
+
+        if (!isSameSet) {
+            return res.status(400).json({ success: false, message: 'Invalid image order' });
+        }
+
+        await variation.update({ images: newOrder });
+
+        res.json({ success: true, message: 'Variation image order updated' });
+    } catch (error) {
+        console.error('Reorder variation image error:', error);
+        res.status(500).json({ success: false, message: 'Error updating variation image order' });
+    }
+},
+
 deleteProductVideo: async (req, res) => {
     try {
         const product = await Product.findByPk(req.params.id);
