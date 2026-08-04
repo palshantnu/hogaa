@@ -1,7 +1,9 @@
 {
   "permissions": {
     "allow": [
-      "Bash(node -e \"require\\('./routes/admin/products.js'\\); console.log\\('routes OK'\\)\")"
+      "Bash(node -e \"require\\('./routes/admin/products.js'\\); console.log\\('routes OK'\\)\")",
+      "Bash(node -e ' *)",
+      "Bash(npx vite *)"
     ]
   }
 }

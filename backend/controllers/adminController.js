@@ -2,6 +2,7 @@ const Order = require('../models/Order');
 const Product = require('../models/Product');
 const User = require('../models/User');
 const Banner = require('../models/Banner');
+const ShopTheLook = require('../models/ShopTheLook');
 const Category = require('../models/Category');
 const Admin = require('../models/Admin');
 const OrderItem = require('../models/OrderItem');
@@ -2227,6 +2228,162 @@ console.log('media_type',media_type);
             }
         } catch (error) {
             console.error('Toggle banner status error:', error);
+            res.status(500).json({ success: false });
+        }
+    },
+
+    // ========== Shop The Look ==========
+    getShopTheLook: async (req, res) => {
+        try {
+            if (!req.session.admin) {
+                return res.redirect('/admin/auth/login');
+            }
+
+            const items = await ShopTheLook.findAll({
+                order: [['sort_order', 'ASC'], ['created_at', 'DESC']]
+            });
+
+            res.render('admin/shop-the-look/list', {
+                title: 'Shop The Look',
+                admin: req.session.admin,
+                items: items
+            });
+        } catch (error) {
+            console.error('Get shop the look error:', error);
+            res.status(500).send('Error loading Shop The Look items');
+        }
+    },
+
+    getAddShopTheLook: async (req, res) => {
+        try {
+            if (!req.session.admin) {
+                return res.redirect('/admin/auth/login');
+            }
+
+            res.render('admin/shop-the-look/form', {
+                title: 'Add Shop The Look Image',
+                admin: req.session.admin,
+                item: null
+            });
+        } catch (error) {
+            console.error('Add shop the look form error:', error);
+            res.status(500).send('Error loading form');
+        }
+    },
+
+    getEditShopTheLook: async (req, res) => {
+        try {
+            if (!req.session.admin) {
+                return res.redirect('/admin/auth/login');
+            }
+
+            const item = await ShopTheLook.findByPk(req.params.id);
+            if (!item) {
+                return res.redirect('/admin/shop-the-look');
+            }
+
+            res.render('admin/shop-the-look/form', {
+                title: 'Edit Shop The Look Image',
+                admin: req.session.admin,
+                item: item
+            });
+        } catch (error) {
+            console.error('Edit shop the look form error:', error);
+            res.status(500).send('Error loading form');
+        }
+    },
+
+    addShopTheLook: async (req, res) => {
+        try {
+            const { label, link, sort_order, status } = req.body;
+
+            if (!req.file) {
+                return res.status(400).send('Image is required');
+            }
+
+            const uploadedPath = req.file.path;
+            const compressedPath = await compressImage(uploadedPath);
+
+            await ShopTheLook.create({
+                label: label || null,
+                image: path.basename(compressedPath),
+                link: link || null,
+                sort_order: parseInt(sort_order) || 0,
+                status: status || 'active'
+            });
+
+            res.redirect('/admin/shop-the-look');
+        } catch (error) {
+            console.error('Create shop the look error:', error);
+            res.status(500).send('Error creating item: ' + error.message);
+        }
+    },
+
+    updateShopTheLook: async (req, res) => {
+        try {
+            const item = await ShopTheLook.findByPk(req.params.id);
+            if (!item) {
+                return res.redirect('/admin/shop-the-look');
+            }
+
+            const { label, link, sort_order, status } = req.body;
+
+            const updateData = {
+                label: label || null,
+                link: link || null,
+                sort_order: parseInt(sort_order) || 0,
+                status: status || 'active'
+            };
+
+            if (req.file) {
+                if (item.image) {
+                    const oldImagePath = path.join(__dirname, '../public/uploads/shop-the-look/', item.image);
+                    if (fs.existsSync(oldImagePath)) {
+                        fs.unlinkSync(oldImagePath);
+                    }
+                }
+                const compressedPath = await compressImage(req.file.path);
+                updateData.image = path.basename(compressedPath);
+            }
+
+            await item.update(updateData);
+            res.redirect('/admin/shop-the-look');
+        } catch (error) {
+            console.error('Update shop the look error:', error);
+            res.status(500).send('Error updating item: ' + error.message);
+        }
+    },
+
+    deleteShopTheLook: async (req, res) => {
+        try {
+            const item = await ShopTheLook.findByPk(req.params.id);
+            if (item) {
+                if (item.image) {
+                    const imagePath = path.join(__dirname, '../public/uploads/shop-the-look/', item.image);
+                    if (fs.existsSync(imagePath)) {
+                        fs.unlinkSync(imagePath);
+                    }
+                }
+                await item.destroy();
+            }
+            res.redirect('/admin/shop-the-look');
+        } catch (error) {
+            console.error('Delete shop the look error:', error);
+            res.status(500).send('Error deleting item');
+        }
+    },
+
+    toggleShopTheLookStatus: async (req, res) => {
+        try {
+            const item = await ShopTheLook.findByPk(req.params.id);
+            if (item) {
+                await item.update({ status: item.status === 'active' ? 'inactive' : 'active' });
+                res.json({ success: true, status: item.status });
+            } else {
+                res.status(404).json({ success: false });
+            }
+        } catch (error) {
+            console.error('Toggle shop the look status error:', error);
             res.status(500).json({ success: false });
         }
     }
