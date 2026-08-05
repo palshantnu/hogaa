@@ -15,6 +15,7 @@ import Launch from './Components/Launch'
 import Newsletter from './Components/Newsletter'
 import AppPromotion from './Components/AppPromotion'
 import ShopTheLook from './Components/ShopTheLook'
+import HogaaInMotion from './Components/HogaaInMotion'
 
 // Pages
 import Login from './Pages/Login'
@@ -43,6 +44,7 @@ const Home = () => (
   <>
     <Hero />
     <Category />
+    <HogaaInMotion />
     <Launch />
     <ShopTheLook />
     {/* <Newsletter /> */}

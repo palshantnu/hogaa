@@ -58,6 +58,7 @@ app.use('/api/pages', require('./routes/api/pages'));
 app.use('/api/orders', require('./routes/api/orders'));
 app.use('/api/banners', require('./routes/api/banners'));
 app.use('/api/shop-the-look', require('./routes/api/shopTheLook'));
+app.use('/api/hogaa-in-motion', require('./routes/api/hogaaInMotion'));
 app.use('/api/settings', require('./routes/api/settings'));
 
 
@@ -70,6 +71,7 @@ app.use('/admin/orders', require('./routes/admin/orders'));
 app.use('/admin/pages', require('./routes/admin/pages'));
 app.use('/admin/banners', require('./routes/admin/banners'));
 app.use('/admin/shop-the-look', require('./routes/admin/shopTheLook'));
+app.use('/admin/hogaa-in-motion', require('./routes/admin/hogaaInMotion'));
 app.use('/admin/users', require('./routes/admin/users'));
 app.use('/admin/settings', require('./routes/admin/settings'));
 

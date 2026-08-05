@@ -3,6 +3,7 @@ const Product = require('../models/Product');
 const User = require('../models/User');
 const Banner = require('../models/Banner');
 const ShopTheLook = require('../models/ShopTheLook');
+const HogaaInMotion = require('../models/HogaaInMotion');
 const Category = require('../models/Category');
 const Admin = require('../models/Admin');
 const OrderItem = require('../models/OrderItem');
@@ -2463,6 +2464,163 @@ console.log('media_type',media_type);
             }
         } catch (error) {
             console.error('Toggle shop the look status error:', error);
+            res.status(500).json({ success: false });
+        }
+    },
+
+    // ========== Hogaa In Motion ==========
+    getHogaaInMotion: async (req, res) => {
+        try {
+            if (!req.session.admin) {
+                return res.redirect('/admin/auth/login');
+            }
+
+            const items = await HogaaInMotion.findAll({
+                order: [['sort_order', 'ASC'], ['created_at', 'DESC']]
+            });
+
+            res.render('admin/hogaa-in-motion/list', {
+                title: 'Hogaa In Motion',
+                admin: req.session.admin,
+                items: items
+            });
+        } catch (error) {
+            console.error('Get hogaa in motion error:', error);
+            res.status(500).send('Error loading Hogaa In Motion items');
+        }
+    },
+
+    getAddHogaaInMotion: async (req, res) => {
+        try {
+            if (!req.session.admin) {
+                return res.redirect('/admin/auth/login');
+            }
+
+            res.render('admin/hogaa-in-motion/form', {
+                title: 'Add Hogaa In Motion GIF',
+                admin: req.session.admin,
+                item: null
+            });
+        } catch (error) {
+            console.error('Add hogaa in motion form error:', error);
+            res.status(500).send('Error loading form');
+        }
+    },
+
+    getEditHogaaInMotion: async (req, res) => {
+        try {
+            if (!req.session.admin) {
+                return res.redirect('/admin/auth/login');
+            }
+
+            const item = await HogaaInMotion.findByPk(req.params.id);
+            if (!item) {
+                return res.redirect('/admin/hogaa-in-motion');
+            }
+
+            res.render('admin/hogaa-in-motion/form', {
+                title: 'Edit Hogaa In Motion GIF',
+                admin: req.session.admin,
+                item: item
+            });
+        } catch (error) {
+            console.error('Edit hogaa in motion form error:', error);
+            res.status(500).send('Error loading form');
+        }
+    },
+
+    // Supports uploading any number of GIFs at once - one row is created per file.
+    // GIFs are saved as-is (never run through compressImage/sharp, which would
+    // flatten them to a static webp and kill the animation).
+    addHogaaInMotion: async (req, res) => {
+        try {
+            const { title, link, sort_order, status } = req.body;
+
+            if (!req.files || req.files.length === 0) {
+                return res.status(400).send('At least one GIF is required');
+            }
+
+            const baseSortOrder = parseInt(sort_order) || 0;
+
+            await HogaaInMotion.bulkCreate(req.files.map((file, index) => ({
+                title: title || null,
+                image: file.filename,
+                link: link || null,
+                sort_order: baseSortOrder + index,
+                status: status || 'active'
+            })));
+
+            res.redirect('/admin/hogaa-in-motion');
+        } catch (error) {
+            console.error('Create hogaa in motion error:', error);
+            res.status(500).send('Error creating item: ' + error.message);
+        }
+    },
+
+    updateHogaaInMotion: async (req, res) => {
+        try {
+            const item = await HogaaInMotion.findByPk(req.params.id);
+            if (!item) {
+                return res.redirect('/admin/hogaa-in-motion');
+            }
+
+            const { title, link, sort_order, status } = req.body;
+
+            const updateData = {
+                title: title || null,
+                link: link || null,
+                sort_order: parseInt(sort_order) || 0,
+                status: status || 'active'
+            };
+
+            if (req.file) {
+                if (item.image) {
+                    const oldImagePath = path.join(__dirname, '../public/uploads/hogaa-in-motion/', item.image);
+                    if (fs.existsSync(oldImagePath)) {
+                        fs.unlinkSync(oldImagePath);
+                    }
+                }
+                updateData.image = req.file.filename;
+            }
+
+            await item.update(updateData);
+            res.redirect('/admin/hogaa-in-motion');
+        } catch (error) {
+            console.error('Update hogaa in motion error:', error);
+            res.status(500).send('Error updating item: ' + error.message);
+        }
+    },
+
+    deleteHogaaInMotion: async (req, res) => {
+        try {
+            const item = await HogaaInMotion.findByPk(req.params.id);
+            if (item) {
+                if (item.image) {
+                    const imagePath = path.join(__dirname, '../public/uploads/hogaa-in-motion/', item.image);
+                    if (fs.existsSync(imagePath)) {
+                        fs.unlinkSync(imagePath);
+                    }
+                }
+                await item.destroy();
+            }
+            res.redirect('/admin/hogaa-in-motion');
+        } catch (error) {
+            console.error('Delete hogaa in motion error:', error);
+            res.status(500).send('Error deleting item');
+        }
+    },
+
+    toggleHogaaInMotionStatus: async (req, res) => {
+        try {
+            const item = await HogaaInMotion.findByPk(req.params.id);
+            if (item) {
+                await item.update({ status: item.status === 'active' ? 'inactive' : 'active' });
+                res.json({ success: true, status: item.status });
+            } else {
+                res.status(404).json({ success: false });
+            }
+        } catch (error) {
+            console.error('Toggle hogaa in motion status error:', error);
             res.status(500).json({ success: false });
         }
     }

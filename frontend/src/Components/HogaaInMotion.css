@@ -1,0 +1,89 @@
+.him-section {
+  padding: 50px 4%;
+  background: #fff;
+}
+
+.him-header {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.him-title {
+  font-size: 28px;
+  font-weight: 800;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: #1a1a1a;
+  margin: 0;
+}
+
+/* Single row, same card size as the Category section - scrolls horizontally
+   instead of shrinking, so every GIF keeps the same size regardless of count. */
+.him-row {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 25px;
+  overflow-x: auto;
+  scroll-behavior: smooth;
+  padding-bottom: 20px;
+  scrollbar-width: none; /* Firefox */
+}
+
+.him-row::-webkit-scrollbar {
+  display: none; /* Chrome */
+}
+
+.him-item {
+  position: relative;
+  flex: 0 0 auto;
+  width: clamp(140px, 22vw, 200px);
+  height: 200px;
+  overflow: hidden;
+  border-radius: 10px;
+  background: #f9f9f9;
+}
+
+.him-item.him-clickable {
+  cursor: pointer;
+}
+
+.him-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* Responsive - matches Category image box breakpoints */
+@media (max-width: 768px) {
+  .him-section {
+    padding: 32px 4%;
+  }
+
+  .him-title {
+    font-size: 22px;
+  }
+
+  .him-row {
+    gap: 14px;
+    padding-bottom: 12px;
+  }
+
+  .him-item {
+    height: 160px;
+  }
+}
+
+@media (max-width: 480px) {
+  .him-title {
+    font-size: 18px;
+  }
+
+  .him-row {
+    gap: 10px;
+  }
+
+  .him-item {
+    height: 130px;
+  }
+}

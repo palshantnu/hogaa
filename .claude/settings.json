@@ -4,7 +4,11 @@
       "Bash(node -e \"require\\('./routes/admin/products.js'\\); console.log\\('routes OK'\\)\")",
       "Bash(node -e ' *)",
       "Bash(npx vite *)",
-      "Bash(sshpass -p 'uJvq8WKhK3Lle5I916' ssh -o StrictHostKeyChecking=no root@162.0.216.148 \"find /var/www/hoga-Backend/public/uploads/products -iname 'variation-video-1785908848816*'\")"
+      "Bash(sshpass -p 'uJvq8WKhK3Lle5I916' ssh -o StrictHostKeyChecking=no root@162.0.216.148 \"find /var/www/hoga-Backend/public/uploads/products -iname 'variation-video-1785908848816*'\")",
+      "Bash(sshpass -p 'uJvq8WKhK3Lle5I916' scp -o StrictHostKeyChecking=no /private/tmp/claude-501/-Users-shantnu-Desktop-Shantnu-node-hogaa/c1bc597b-4d62-40e1-88d6-ff0c9b784956/scratchpad/frontend_dist_motion.tar.gz root@162.0.216.148:/tmp/frontend_dist_motion.tar.gz)",
+      "Bash(sshpass -p uJvq8WKhK3Lle5I916 ssh -o StrictHostKeyChecking=no root@162.0.216.148 ' *)",
+      "Bash(sshpass -p 'uJvq8WKhK3Lle5I916' ssh -o StrictHostKeyChecking=no root@162.0.216.148 \"curl -s -o /dev/null -w 'main site: %{http_code}\\\\n' https://hogaacosmetics.com/; curl -s -o /dev/null -w 'admin: %{http_code}\\\\n' https://admin.hogaacosmetics.com/admin/auth/login; curl -s https://admin.hogaacosmetics.com/api/hogaa-in-motion\")",
+      "Bash(sshpass -p 'uJvq8WKhK3Lle5I916' scp -o StrictHostKeyChecking=no /private/tmp/claude-501/-Users-shantnu-Desktop-Shantnu-node-hogaa/c1bc597b-4d62-40e1-88d6-ff0c9b784956/scratchpad/frontend_dist_motion2.tar.gz root@162.0.216.148:/tmp/frontend_dist_motion2.tar.gz)"
     ]
   }
 }
