@@ -315,7 +315,7 @@ getProducts: async (req, res) => {
                         price: parseFloat(variation.price),
                         compare_price: variation.compare_price ? parseFloat(variation.compare_price) : null,
                         images: variation.images && variation.images.length > 0 ? variation.images : productData.images,
-                        product_video: productData.product_video,
+                        product_videos: variation.videos && variation.videos.length > 0 ? variation.videos : productData.product_videos,
                         short_description: productData.short_description,
                         stock: variation.stock,
                         stock_status: variation.stock_status,
@@ -344,7 +344,7 @@ getProducts: async (req, res) => {
                     price: parseFloat(productData.price),
                     compare_price: productData.compare_price ? parseFloat(productData.compare_price) : null,
                     images: productData.images,
-                    product_video: productData.product_video,
+                    product_videos: productData.product_videos,
                     short_description: productData.short_description,
                     stock: productData.stock,
                     stock_status: productData.stock_status,
@@ -498,6 +498,7 @@ getProductById: async (req, res) => {
                 stock: variation.stock,
                 stock_status: variation.stock_status,
                 images: variation.images && variation.images.length > 0 ? variation.images : product.images,
+                videos: variation.videos && variation.videos.length > 0 ? variation.videos : product.product_videos,
                 is_online: variation.is_online || false,
                 online_retailers: variation.online_retailers || [],
                 cgst_rate: variation.cgst_rate,
@@ -534,6 +535,9 @@ getProductById: async (req, res) => {
                 productData.stock = selectedVarData.stock;
                 if (selectedVarData.images && selectedVarData.images.length > 0) {
                     productData.images = selectedVarData.images;
+                }
+                if (selectedVarData.videos && selectedVarData.videos.length > 0) {
+                    productData.product_videos = selectedVarData.videos;
                 }
             }
         } else if (variationsWithAttributes.length > 0) {
@@ -613,7 +617,7 @@ getProductById: async (req, res) => {
                 compare_price: relProductData.compare_price,
                 display_price: relProductData.display_price,
                 images: relProductData.images,
-                product_video: relProductData.product_video,
+                product_videos: relProductData.product_videos,
                 display_image: relProductData.display_image,
                 has_variations: relProductData.has_variations,
                 variation_count: relProductData.variation_count,
@@ -822,7 +826,7 @@ getProductById: async (req, res) => {
                     ]
                 },
                 limit: 10,
-                attributes: ['id', 'name', 'price', 'compare_price', 'images', 'product_video', 'slug', 'has_variations']
+                attributes: ['id', 'name', 'price', 'compare_price', 'images', 'product_videos', 'slug', 'has_variations']
             });
 
             res.json({ success: true, products });
@@ -863,7 +867,7 @@ getProductById: async (req, res) => {
             const products = await Product.findAll({
                 where: { category_id: category.id, is_active: true },
                 limit: 20,
-                attributes: ['id', 'name', 'slug', 'price', 'compare_price', 'images', 'product_video', 'has_variations']
+                attributes: ['id', 'name', 'slug', 'price', 'compare_price', 'images', 'product_videos', 'has_variations']
             });
 
             res.json({ success: true, category, products });

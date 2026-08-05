@@ -38,6 +38,10 @@ const ProductVariation = sequelize.define('ProductVariation', {
         type: DataTypes.JSON,
         defaultValue: []
     },
+    videos: {
+        type: DataTypes.JSON,
+        defaultValue: []
+    },
     weight: {
         type: DataTypes.DECIMAL(10, 2)
     },

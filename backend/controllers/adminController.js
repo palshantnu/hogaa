@@ -91,6 +91,14 @@ function compressVideo(filePath) {
     });
 }
 
+// Compress a batch of newly uploaded videos in the background (non-blocking)
+function compressVideos(filenames, dir) {
+    (filenames || []).forEach(filename => {
+        const videoPath = path.join(__dirname, dir, filename);
+        compressVideo(videoPath).catch(err => console.error('Compression error:', err));
+    });
+}
+
 // Build retailers array from body + uploaded files
 function buildRetailers(retailersBody, files, filePrefix) {
     const retailers = [];
@@ -989,14 +997,11 @@ updateAttribute: async (req, res) => {
             } = req.body;
 
             const images = req.files ? req.files.filter(f => f.fieldname === 'images').map(file => file.filename) : [];
-            const productVideo = req.files ? req.files.find(f => f.fieldname === 'product_video') : null;
+            const productVideos = req.files ? req.files.filter(f => f.fieldname === 'product_videos').map(file => file.filename) : [];
             const onlineRetailers = buildRetailers(req.body.retailers, req.files, 'online_img_');
 
-            // Compress video in background (non-blocking)
-            if (productVideo) {
-                const videoPath = path.join(__dirname, '../public/uploads/products/', productVideo.filename);
-                compressVideo(videoPath).catch(err => console.error('Compression error:', err));
-            }
+            // Compress videos in background (non-blocking)
+            compressVideos(productVideos, '../public/uploads/products/');
 
             let slug = customSlug;
             if (!slug || slug.trim() === '') {
@@ -1026,7 +1031,7 @@ updateAttribute: async (req, res) => {
                 short_description,
                 category_id: parseInt(category_id),
                 images,
-                product_video: productVideo ? productVideo.filename : null,
+                product_videos: productVideos,
                 is_active: true,
                 is_featured: is_featured === 'on' || is_featured === 'true',
                 has_variations: product_type === 'variable',
@@ -1052,6 +1057,8 @@ updateAttribute: async (req, res) => {
                     const variation = variations[index];
 
                     const variationImages = req.files ? req.files.filter(f => f.fieldname === `variation_images_${index}`).map(f => f.filename) : [];
+                    const variationVideos = req.files ? req.files.filter(f => f.fieldname === `variation_videos_${index}`).map(f => f.filename) : [];
+                    compressVideos(variationVideos, '../public/uploads/products/variations/');
                     const varOnlineRetailers = buildRetailers(variation.retailers, req.files, `var_online_img_${index}_`);
 
                     // Calculate variation base_price
@@ -1071,6 +1078,7 @@ updateAttribute: async (req, res) => {
                         compare_price: variation.compare_price ? parseFloat(variation.compare_price) : null,
                         stock: parseInt(variation.stock) || 0,
                         images: variationImages,
+                        videos: variationVideos,
                         cgst_rate: parseFloat(variation.cgst_rate) || 0,
                         sgst_rate: parseFloat(variation.sgst_rate) || 0,
                         igst_rate: parseFloat(variation.igst_rate) || 0,
@@ -1213,7 +1221,7 @@ updateAttribute: async (req, res) => {
             price, compare_price, stock, cgst_rate, sgst_rate, igst_rate,
             product_type, cost_per_item, weight, is_featured,
             existing_images,
-            existing_video,
+            existing_videos,
             is_online
         } = req.body;
 
@@ -1232,20 +1240,20 @@ updateAttribute: async (req, res) => {
             images = [...images, ...newImages];
         }
 
-        let productVideo = existing_video || null;
+        // Handle videos - start with existing videos if provided
+        let productVideos = [];
+        if (existing_videos && existing_videos.trim()) {
+            productVideos = existing_videos.split(',');
+        } else if (product.product_videos && product.product_videos.length > 0 && !existing_videos) {
+            productVideos = product.product_videos;
+        }
+
+        // Add new videos
         if (req.files && req.files.length > 0) {
-            const newVideo = req.files.find(f => f.fieldname === 'product_video');
-            if (newVideo) {
-                if (product.product_video) {
-                    const oldVideoPath = path.join(__dirname, '../public/uploads/products/', product.product_video);
-                    if (fs.existsSync(oldVideoPath)) {
-                        fs.unlinkSync(oldVideoPath);
-                    }
-                }
-                productVideo = newVideo.filename;
-                // Compress video in background (non-blocking)
-                const videoPath = path.join(__dirname, '../public/uploads/products/', newVideo.filename);
-                compressVideo(videoPath).catch(err => console.error('Compression error:', err));
+            const newVideos = req.files.filter(f => f.fieldname === 'product_videos').map(file => file.filename);
+            if (newVideos.length > 0) {
+                compressVideos(newVideos, '../public/uploads/products/');
+                productVideos = [...productVideos, ...newVideos];
             }
         }
 
@@ -1266,7 +1274,7 @@ updateAttribute: async (req, res) => {
             short_description,
             category_id: parseInt(category_id),
             images,
-            product_video: productVideo,
+            product_videos: productVideos,
             is_featured: is_featured === 'on' || is_featured === 'true',
             has_variations: product_type === 'variable',
             is_online: is_online === 'true' || is_online === 'on',
@@ -1324,12 +1332,16 @@ updateAttribute: async (req, res) => {
                     const variation = variations[index];
                     const variationId = variation.id ? parseInt(variation.id) : null;
 
-                    // Handle variation images - get existing ones
+                    // Handle variation images/videos - get existing ones
                     let variationImages = [];
+                    let variationVideos = [];
                     if (variationId) {
                         const existingVariation = await ProductVariation.findByPk(variationId, { transaction });
                         if (existingVariation && existingVariation.images) {
                             variationImages = existingVariation.images;
+                        }
+                        if (existingVariation && existingVariation.videos) {
+                            variationVideos = existingVariation.videos;
                         }
                     }
 
@@ -1337,6 +1349,12 @@ updateAttribute: async (req, res) => {
                     if (req.files) {
                         const newVariationImages = req.files.filter(f => f.fieldname === `variation_images_${index}`).map(f => f.filename);
                         variationImages = [...variationImages, ...newVariationImages];
+
+                        const newVariationVideos = req.files.filter(f => f.fieldname === `variation_videos_${index}`).map(f => f.filename);
+                        if (newVariationVideos.length > 0) {
+                            compressVideos(newVariationVideos, '../public/uploads/products/variations/');
+                            variationVideos = [...variationVideos, ...newVariationVideos];
+                        }
                     }
 
                     const varOnlineRetailers = buildRetailers(variation.retailers, req.files, `var_online_img_${index}_`);
@@ -1362,6 +1380,7 @@ updateAttribute: async (req, res) => {
                                 compare_price: variation.compare_price ? parseFloat(variation.compare_price) : null,
                                 stock: parseInt(variation.stock) || 0,
                                 images: variationImages,
+                                videos: variationVideos,
                                 cgst_rate: parseFloat(variation.cgst_rate) || 0,
                                 sgst_rate: parseFloat(variation.sgst_rate) || 0,
                                 igst_rate: parseFloat(variation.igst_rate) || 0,
@@ -1380,15 +1399,14 @@ updateAttribute: async (req, res) => {
                             compare_price: variation.compare_price ? parseFloat(variation.compare_price) : null,
                             stock: parseInt(variation.stock) || 0,
                             images: variationImages,
+                            videos: variationVideos,
                             cgst_rate: parseFloat(variation.cgst_rate) || 0,
                             sgst_rate: parseFloat(variation.sgst_rate) || 0,
                             igst_rate: parseFloat(variation.igst_rate) || 0,
                             cost_per_item: variation.cost_per_item ? parseFloat(variation.cost_per_item) : null,
                             weight: variation.weight ? parseFloat(variation.weight) : null,
                             is_online: variation.is_online === 'true' || variation.is_online === 'on',
-                            online_url: variation.online_url || null,
-                            online_title: variation.online_title || null,
-                            online_image: varOnlineImage
+                            online_retailers: varOnlineRetailers
                         }, { transaction });
                     }
 
@@ -1561,20 +1579,81 @@ deleteProductVideo: async (req, res) => {
             return res.status(404).json({ success: false, message: 'Product not found' });
         }
 
-        if (!product.product_video) {
+        const videoToRemove = req.params.video;
+        const currentVideos = product.product_videos || [];
+
+        if (!currentVideos.includes(videoToRemove)) {
             return res.status(404).json({ success: false, message: 'Video not found' });
         }
 
-        const videoPath = path.join(__dirname, '../public/uploads/products/', product.product_video);
+        const updatedVideos = currentVideos.filter(v => v !== videoToRemove);
+        await product.update({ product_videos: updatedVideos });
+
+        const videoPath = path.join(__dirname, '../public/uploads/products/', videoToRemove);
         if (fs.existsSync(videoPath)) {
             fs.unlinkSync(videoPath);
         }
 
-        await product.update({ product_video: null });
         res.json({ success: true, message: 'Video deleted successfully' });
     } catch (error) {
         console.error('Delete product video error:', error);
         res.status(500).json({ success: false, message: 'Error deleting video' });
+    }
+},
+
+deleteVariationVideo: async (req, res) => {
+    try {
+        const variation = await ProductVariation.findByPk(req.params.variationId);
+        if (!variation) {
+            return res.status(404).json({ success: false, message: 'Variation not found' });
+        }
+
+        const videoToRemove = req.params.videoName;
+        const currentVideos = variation.videos || [];
+
+        if (!currentVideos.includes(videoToRemove)) {
+            return res.status(404).json({ success: false, message: 'Video not found' });
+        }
+
+        const updatedVideos = currentVideos.filter(v => v !== videoToRemove);
+        await variation.update({ videos: updatedVideos });
+
+        const videoPath = path.join(__dirname, '../public/uploads/products/variations/', videoToRemove);
+        if (fs.existsSync(videoPath)) {
+            fs.unlinkSync(videoPath);
+        }
+
+        res.json({ success: true, message: 'Variation video deleted successfully' });
+    } catch (error) {
+        console.error('Delete variation video error:', error);
+        res.status(500).json({ success: false, message: 'Error deleting variation video' });
+    }
+},
+
+reorderVariationVideos: async (req, res) => {
+    try {
+        const variation = await ProductVariation.findByPk(req.params.variationId);
+        if (!variation) {
+            return res.status(404).json({ success: false, message: 'Variation not found' });
+        }
+
+        const currentVideos = variation.videos || [];
+        const newOrder = Array.isArray(req.body.videos) ? req.body.videos : [];
+
+        // Only accept a reordering of the videos that already exist on this variation
+        const isSameSet = newOrder.length === currentVideos.length &&
+            newOrder.every(vid => currentVideos.includes(vid));
+
+        if (!isSameSet) {
+            return res.status(400).json({ success: false, message: 'Invalid video order' });
+        }
+
+        await variation.update({ videos: newOrder });
+
+        res.json({ success: true, message: 'Variation video order updated' });
+    } catch (error) {
+        console.error('Reorder variation video error:', error);
+        res.status(500).json({ success: false, message: 'Error updating variation video order' });
     }
 },
 

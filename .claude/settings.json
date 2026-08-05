@@ -3,7 +3,8 @@
     "allow": [
       "Bash(node -e \"require\\('./routes/admin/products.js'\\); console.log\\('routes OK'\\)\")",
       "Bash(node -e ' *)",
-      "Bash(npx vite *)"
+      "Bash(npx vite *)",
+      "Bash(sshpass -p 'uJvq8WKhK3Lle5I916' ssh -o StrictHostKeyChecking=no root@162.0.216.148 \"find /var/www/hoga-Backend/public/uploads/products -iname 'variation-video-1785908848816*'\")"
     ]
   }
 }

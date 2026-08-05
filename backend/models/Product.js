@@ -80,7 +80,12 @@ const Product = sequelize.define('Product', {
   product_video: {
     type: DataTypes.STRING(255),
     allowNull: true,
-    comment: 'Optional product video filename'
+    comment: 'Deprecated: use product_videos instead'
+  },
+  product_videos: {
+    type: DataTypes.JSON,
+    defaultValue: [],
+    comment: 'Array of product video filenames'
   },
   weight: {
     type: DataTypes.DECIMAL(10, 2),

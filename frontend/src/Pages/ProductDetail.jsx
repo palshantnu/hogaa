@@ -33,7 +33,7 @@ const ProductDetail = () => {
   const [activeImageIndex, setActiveImageIndex] = useState(0);
   const scrollRef = useRef(null);
   const thumbnailRef = useRef(null);
-  const videoRef = useRef(null);
+  const videoRefs = useRef({});
 
   const [selectedVariation, setSelectedVariation] = useState(null);
   const [selectedAttributes, setSelectedAttributes] = useState({});
@@ -190,7 +190,7 @@ const ProductDetail = () => {
     return `https://admin.hogaacosmetics.com/uploads/products/variations/${imagePath}`;
   };
 
-  const getVideoUrl = (videoPath) => {
+  const getVideoUrl = (videoPath, isVariation = false) => {
     if (!videoPath) return null;
     if (videoPath.startsWith('http://') || videoPath.startsWith('https://')) {
       return videoPath;
@@ -198,7 +198,10 @@ const ProductDetail = () => {
     if (videoPath.startsWith('/uploads/')) {
       return `https://admin.hogaacosmetics.com${videoPath}`;
     }
-    return `https://admin.hogaacosmetics.com/uploads/products/${videoPath}`;
+    if (!isVariation) {
+      return `https://admin.hogaacosmetics.com/uploads/products/${videoPath}`;
+    }
+    return `https://admin.hogaacosmetics.com/uploads/products/variations/${videoPath}`;
   };
 
   const handleAttributeSelect = async (attributeId, valueId) => {
@@ -273,6 +276,17 @@ const ProductDetail = () => {
     return `₹${numericPrice.toLocaleString('en-IN')}`;
   };
 
+  const syncVideoPlayback = (activeIndex, mediaItems = []) => {
+    Object.entries(videoRefs.current).forEach(([idx, el]) => {
+      if (!el) return;
+      if (Number(idx) === activeIndex && mediaItems[activeIndex]?.type === "video") {
+        el.play().catch(() => {});
+      } else {
+        el.pause();
+      }
+    });
+  };
+
   const scrollToImage = (index, mediaItems = []) => {
     if (!mediaItems.length) return;
 
@@ -283,13 +297,7 @@ const ProductDetail = () => {
       setMainImage(selectedMedia.url);
     }
 
-    if (videoRef.current) {
-      if (selectedMedia?.type === "video") {
-        videoRef.current.play().catch(() => {});
-      } else {
-        videoRef.current.pause();
-      }
-    }
+    syncVideoPlayback(normalizedIndex, mediaItems);
 
     const imageContainer = scrollRef.current;
     if (imageContainer) {
@@ -507,20 +515,23 @@ const ProductDetail = () => {
   const imageUrls = (imagesToShow && imagesToShow.length > 0)
     ? imagesToShow.map((img) => getImageUrl(img, product?.has_variations))
     : ['https://via.placeholder.com/500x500?text=Product+Image'];
-  const productVideoUrl = getVideoUrl(product.product_video);
+  const videosToShow = (selectedVariation?.videos && selectedVariation.videos.length > 0)
+    ? selectedVariation.videos
+    : product.product_videos;
+  const productVideoUrls = (videosToShow && videosToShow.length > 0)
+    ? videosToShow.map((vid) => getVideoUrl(vid, product?.has_variations)).filter(Boolean)
+    : [];
   const mediaItems = [
     ...imageUrls.map((imageUrl, index) => ({
       type: "image",
       url: imageUrl,
       alt: `${product.name} view ${index + 1}`
     })),
-    ...(productVideoUrl
-      ? [{
-          type: "video",
-          url: productVideoUrl,
-          alt: `${product.name} video`
-        }]
-      : [])
+    ...productVideoUrls.map((videoUrl, index) => ({
+      type: "video",
+      url: videoUrl,
+      alt: `${product.name} video ${index + 1}`
+    }))
   ];
 
   const handleGalleryScroll = () => {
@@ -533,13 +544,7 @@ const ProductDetail = () => {
       if (mediaItems[nextIndex].type === "image") {
         setMainImage(mediaItems[nextIndex].url);
       }
-      if (videoRef.current) {
-        if (mediaItems[nextIndex].type === "video") {
-          videoRef.current.play().catch(() => {});
-        } else {
-          videoRef.current.pause();
-        }
-      }
+      syncVideoPlayback(nextIndex, mediaItems);
     }
   };
 
@@ -583,7 +588,7 @@ const ProductDetail = () => {
                 media.type === "video" ? (
                   <video
                     key={`${media.url}-${i}`}
-                    ref={videoRef}
+                    ref={(el) => { videoRefs.current[i] = el; }}
                     src={media.url}
                     className="main-video-large"
                     controls
