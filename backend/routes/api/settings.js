@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const SiteSetting = require('../../models/SiteSetting');
+const { DEFAULT_APP_PROMO } = require('../../utils/appPromoDefaults');
 
 // GET marquee messages (public)
 router.get('/marquee', async (req, res) => {
@@ -21,6 +22,19 @@ router.get('/marquee', async (req, res) => {
         });
     } catch (error) {
         res.status(500).json({ success: false, messages: [] });
+    }
+});
+
+// GET homepage promo section ("Shop smarter with hogaa") - public
+router.get('/app-promo', async (req, res) => {
+    try {
+        const setting = await SiteSetting.findOne({ where: { key: 'app_promo' } });
+        if (setting && setting.value) {
+            return res.json({ success: true, promo: { ...DEFAULT_APP_PROMO, ...JSON.parse(setting.value) } });
+        }
+        res.json({ success: true, promo: DEFAULT_APP_PROMO });
+    } catch (error) {
+        res.status(500).json({ success: false, promo: DEFAULT_APP_PROMO });
     }
 });
 

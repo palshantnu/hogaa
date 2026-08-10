@@ -35,7 +35,7 @@
   width: 90%;
   margin: 0 auto;
   display: grid;
-  grid-template-columns: 1.5fr 1fr 1.2fr;
+  grid-template-columns: 1.4fr 1fr 1.2fr 1fr;
   gap: 50px;
 }
 
@@ -196,7 +196,7 @@
 .contact-list {
   list-style: none;
   padding: 0;
-  margin: 0 0 30px 0;
+  margin: 0;
 }
 
 .contact-list li {
@@ -222,13 +222,6 @@
 
 .contact-list li a:hover {
   color: #d4af37;
-}
-
-/* Account Links */
-.account-links {
-  margin-top: 30px;
-  padding-top: 20px;
-  border-top: 1px solid rgba(255,255,255,0.1);
 }
 
 /* Social Media Bar */
@@ -359,11 +352,7 @@
     grid-template-columns: 1fr 1fr;
     gap: 40px;
   }
-  
-  .brand-section {
-    grid-column: span 2;
-  }
-  
+
   .social-container {
     flex-direction: column;
     text-align: center;
@@ -385,11 +374,7 @@
     grid-template-columns: 1fr;
     gap: 35px;
   }
-  
-  .brand-section {
-    grid-column: span 1;
-  }
-  
+
   .footer-main {
     padding: 40px 0 30px 0;
   }

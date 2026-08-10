@@ -43,6 +43,108 @@
             </form>
         </div>
     </div>
+
+    <div class="card border-0 shadow-sm mt-4" style="border-radius:15px;">
+        <div class="card-header bg-white py-3">
+            <h5 class="mb-1"><i class="fas fa-bolt text-warning me-2"></i>Homepage Promo Section ("Shop smarter with hogaa")</h5>
+            <small class="text-muted">Controls the badge, heading, description, 3 feature chips, 2 buttons and the 3-image collage on the homepage promo block.</small>
+        </div>
+        <div class="card-body p-4">
+            <form action="/admin/settings/app-promo" method="POST" enctype="multipart/form-data">
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Badge Text</label>
+                        <input type="text" name="badge" class="form-control" value="<%= promo.badge %>">
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Heading (before highlighted word)</label>
+                        <input type="text" name="title" class="form-control" value="<%= promo.title %>">
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Highlighted Word</label>
+                        <input type="text" name="titleHighlight" class="form-control" value="<%= promo.titleHighlight %>">
+                    </div>
+
+                    <div class="col-md-12 mb-3">
+                        <label class="form-label">Description</label>
+                        <textarea name="description" class="form-control" rows="3"><%= promo.description %></textarea>
+                    </div>
+                </div>
+
+                <hr class="my-3">
+                <h6 class="mb-3">Feature Chips</h6>
+                <div class="row">
+                    <% for (let i = 1; i <= 3; i++) { const f = promo.features[i-1] || {}; %>
+                        <div class="col-md-2 mb-3">
+                            <label class="form-label">Icon <%= i %> (emoji)</label>
+                            <input type="text" name="feature<%= i %>_icon" class="form-control" value="<%= f.icon || '' %>">
+                        </div>
+                        <div class="col-md-2 mb-3">
+                            <label class="form-label">Label <%= i %></label>
+                            <input type="text" name="feature<%= i %>_label" class="form-control" value="<%= f.label || '' %>">
+                        </div>
+                    <% } %>
+                </div>
+
+                <hr class="my-3">
+                <h6 class="mb-3">Buttons</h6>
+                <div class="row">
+                    <div class="col-md-3 mb-3">
+                        <label class="form-label">Primary Button Text</label>
+                        <input type="text" name="cta_primary_text" class="form-control" value="<%= promo.ctaPrimary.text %>">
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <label class="form-label">Primary Button Link</label>
+                        <input type="text" name="cta_primary_link" class="form-control" value="<%= promo.ctaPrimary.link %>" placeholder="/collections/lips">
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <label class="form-label">Secondary Button Text</label>
+                        <input type="text" name="cta_secondary_text" class="form-control" value="<%= promo.ctaSecondary.text %>">
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <label class="form-label">Secondary Button Link</label>
+                        <input type="text" name="cta_secondary_link" class="form-control" value="<%= promo.ctaSecondary.link %>" placeholder="/collections/face">
+                    </div>
+                </div>
+
+                <hr class="my-3">
+                <h6 class="mb-3">Images</h6>
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Tall Image (left column)</label>
+                        <% if (promo.images.tall) { %>
+                            <img src="<%= promo.images.tall %>" class="d-block mb-2" style="width:100px;height:100px;object-fit:cover;border-radius:8px;">
+                            <input type="hidden" name="existing_image_tall" value="<%= promo.images.tall %>">
+                        <% } %>
+                        <input type="file" name="image_tall" class="form-control" accept="image/*">
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Stack Image 1 (top right)</label>
+                        <% if (promo.images.stack1) { %>
+                            <img src="<%= promo.images.stack1 %>" class="d-block mb-2" style="width:100px;height:100px;object-fit:cover;border-radius:8px;">
+                            <input type="hidden" name="existing_image_stack1" value="<%= promo.images.stack1 %>">
+                        <% } %>
+                        <input type="file" name="image_stack1" class="form-control" accept="image/*">
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Stack Image 2 (bottom right)</label>
+                        <% if (promo.images.stack2) { %>
+                            <img src="<%= promo.images.stack2 %>" class="d-block mb-2" style="width:100px;height:100px;object-fit:cover;border-radius:8px;">
+                            <input type="hidden" name="existing_image_stack2" value="<%= promo.images.stack2 %>">
+                        <% } %>
+                        <input type="file" name="image_stack2" class="form-control" accept="image/*">
+                    </div>
+                    <small class="text-muted">Leave a file input empty to keep the current image.</small>
+                </div>
+
+                <div class="d-flex gap-2 mt-2">
+                    <button type="submit" class="btn btn-primary px-4">
+                        <i class="fas fa-save me-1"></i>Save Promo Section
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
 </div>
 
 <script>

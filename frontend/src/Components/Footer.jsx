@@ -87,7 +87,7 @@ const Footer = () => {
             </ul>
           </div>
 
-          {/* Section 3: Contact & Account */}
+          {/* Section 3: Contact */}
           <div className="footer-section contact-section">
             <h4 className="footer-heading">CONTACT US</h4>
             <ul className="contact-list">
@@ -108,16 +108,16 @@ const Footer = () => {
                 </span>
               </li>
             </ul>
+          </div>
 
-            <div className="account-links">
-              <h4 className="footer-heading">MY ACCOUNT</h4>
-              <ul className="footer-links">
-                <li><Link to="/profile"><FaUserCircle /> My Profile</Link></li>
-                <li><Link to="/profile" state={{ activeTab: 'orders' }}><FaShoppingBag /> My Orders</Link></li>
-                
-                <li><Link to="/return"><FaUndo /> Returns</Link></li>
-              </ul>
-            </div>
+          {/* Section 4: My Account */}
+          <div className="footer-section account-section">
+            <h4 className="footer-heading">MY ACCOUNT</h4>
+            <ul className="footer-links">
+              <li><Link to="/profile"><FaUserCircle /> My Profile</Link></li>
+              <li><Link to="/profile" state={{ activeTab: 'orders' }}><FaShoppingBag /> My Orders</Link></li>
+              {/* <li><Link to="/return"><FaUndo /> Returns</Link></li> */}
+            </ul>
           </div>
         </div>
       </div>
