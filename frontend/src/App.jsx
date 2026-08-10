@@ -22,9 +22,6 @@ import Login from './Pages/Login'
 import Signup from './Pages/Signup'
 import Offers from './Pages/Offers'
 import Wishlist from "./Pages/Wishlist";
-import About from './Footer/About'
-import Faq from './Footer/Faq'
-import Return from './Footer/Return'
 import Contact from './Footer/Contact'
 import Term from './Footer/Term'
 import Store from './Footer/Store'
@@ -120,12 +117,6 @@ function App() {
             </MainLayout>
           } />
 
-          <Route path="/about" element={
-            <MainLayout>
-              <About />
-            </MainLayout>
-          } />
-
           <Route path="/terms" element={
             <MainLayout>
               <Term />
@@ -135,18 +126,6 @@ function App() {
           <Route path="/contact" element={
             <MainLayout>
               <Contact />
-            </MainLayout>
-          } />
-
-          <Route path="/faq" element={
-            <MainLayout>
-              <Faq />
-            </MainLayout>
-          } />
-
-          <Route path="/return" element={
-            <MainLayout>
-              <Return />
             </MainLayout>
           } />
 

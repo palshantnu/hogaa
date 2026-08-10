@@ -6,8 +6,11 @@
     <title><%= title %> | Admin Panel</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- CKEditor 5 -->
-    <script src="https://cdn.ckeditor.com/ckeditor5/39.0.1/classic/ckeditor.js"></script>
+    <!-- Jodit: full-featured, free, self-contained WYSIWYG editor (images w/ upload, tables, video embed,
+         source code view, fonts/colors, find & replace, fullscreen, print, etc.) - no cloud/collaboration
+         dependency, unlike CKEditor's CDN Superbuild which requires a paid Cloud Services channel to even boot. -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/jodit@4/es2021/jodit.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/jodit@4/es2021/jodit.min.js"></script>
     <style>
         body { background: #f8f9fc; font-family: 'Segoe UI', sans-serif; }
         .card { border: none; border-radius: 15px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
@@ -16,7 +19,7 @@
         .form-label { font-weight: 500; margin-bottom: 8px; }
         .form-control, .form-select { border-radius: 10px; padding: 10px 15px; border: 1px solid #e0e0e0; }
         .required-star { color: #dc3545; }
-        .ck-editor__editable { min-height: 400px; }
+        .jodit-workplace { min-height: 400px; }
     </style>
 </head>
 <body>
@@ -79,33 +82,42 @@
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-    // Initialize CKEditor
-    ClassicEditor
-        .create(document.querySelector('#editor'), {
-            toolbar: {
-                items: [
-                    'heading', '|',
-                    'bold', 'italic', 'underline', 'strikethrough', '|',
-                    'bulletedList', 'numberedList', '|',
-                    'outdent', 'indent', '|',
-                    'alignment', '|',
-                    'link', 'blockQuote', '|',
-                    'undo', 'redo'
-                ]
-            },
-            heading: {
-                options: [
-                    { model: 'paragraph', title: 'Paragraph', class: 'ck-heading_paragraph' },
-                    { model: 'heading2', view: 'h2', title: 'Heading 2', class: 'ck-heading_heading2' },
-                    { model: 'heading3', view: 'h3', title: 'Heading 3', class: 'ck-heading_heading3' },
-                    { model: 'heading4', view: 'h4', title: 'Heading 4', class: 'ck-heading_heading4' }
-                ]
+    // Initialize Jodit with its full default toolbar, wired to our own image upload endpoint
+    const editor = Jodit.make('#editor', {
+        height: 500,
+        toolbarAdaptive: false,
+        buttons: [
+            'source', '|', 'bold', 'italic', 'underline', 'strikethrough', '|',
+            'superscript', 'subscript', 'eraser', '|',
+            'ul', 'ol', 'indent', 'outdent', '|',
+            'font', 'fontsize', 'brush', 'paragraph', '|',
+            'image', 'video', 'table', 'link', 'symbol', 'hr', '|',
+            'align', 'undo', 'redo', '|',
+            'find', 'copyformat', 'selectall', 'print', 'fullsize', 'preview', 'about'
+        ],
+        uploader: {
+            url: '/admin/pages/upload-image',
+            format: 'json',
+            filesVariableName: () => 'upload',
+            isSuccess: (resp) => !!resp.uploaded,
+            getMessage: (resp) => (resp.error && resp.error.message) || '',
+            process: (resp) => ({
+                files: resp.url ? [resp.url] : [],
+                error: resp.uploaded ? 0 : 1,
+                msg: (resp.error && resp.error.message) || ''
+            }),
+            defaultHandlerSuccess: function (data) {
+                (data.files || []).forEach((url) => this.selection.insertImage(url));
             }
-        })
-        .catch(error => {
-            console.error(error);
-        });
+        }
+    });
     
+    // Belt-and-braces: force the editor's HTML into the textarea right before submit,
+    // in case Jodit's own auto-sync hasn't fired yet for the last edit.
+    document.querySelector('form').addEventListener('submit', function () {
+        document.querySelector('#editor').value = editor.value;
+    });
+
     // Auto-generate slug from title
     $('#pageTitle').on('keyup', function() {
         if ($('#pageSlug').val() === '' || $('#pageSlug').val() === undefined) {

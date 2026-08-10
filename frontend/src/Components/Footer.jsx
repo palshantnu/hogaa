@@ -3,52 +3,34 @@ import './Footer.css';
 import { Link } from "react-router-dom";
 import { getActivePages } from '../utils/pageApi';
 import logoIcon from "../assets/logo.jpeg";
-import { 
-  FaFacebookF, 
-  FaTwitter, 
-  FaInstagram, 
-  FaYoutube, 
-  FaMapMarkerAlt, 
-  FaEnvelope, 
-  FaPhoneAlt, 
-  FaGift, 
+import {
+  FaFacebookF,
+  FaTwitter,
+  FaInstagram,
+  FaYoutube,
+  FaMapMarkerAlt,
+  FaPhoneAlt,
+  FaGift,
   FaChevronRight,
-  FaNewspaper,
   FaUserCircle,
   FaShoppingBag,
   FaHeart,
-  FaUndo,
-  FaLock
+  FaUndo
 } from 'react-icons/fa';
-import { MdSecurity } from 'react-icons/md';
 import { IoLocationOutline, IoCallOutline, IoMailOutline } from 'react-icons/io5';
 
 const Footer = () => {
   const [quickLinks, setQuickLinks] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Static pages that should always be in quick links
-  const staticPages = [
-    { title: 'About Us', slug: 'about', icon: <FaNewspaper /> },
-    { title: 'Contact Us', slug: 'contact', icon: <FaEnvelope /> },
-    { title: 'Store Locator', slug: 'store', icon: <IoLocationOutline /> },
-    { title: 'Return Policy', slug: 'return', icon: <FaUndo /> },
-    { title: 'Terms & Conditions', slug: 'terms-conditions', icon: <FaLock /> },
-    { title: 'Privacy Policy', slug: 'privacy-policy', icon: <MdSecurity /> },
-    { title: 'FAQs', slug: 'faq', icon: <FaNewspaper /> }
-  ];
-
   useEffect(() => {
     const fetchPages = async () => {
       try {
         const pages = await getActivePages();
-        const customPages = pages.filter(page => 
-          !staticPages.some(sp => sp.slug === page.slug)
-        );
-        setQuickLinks([...staticPages, ...customPages]);
+        setQuickLinks(pages);
       } catch (error) {
         console.error('Error fetching pages:', error);
-        setQuickLinks(staticPages);
+        setQuickLinks([]);
       } finally {
         setLoading(false);
       }
@@ -57,18 +39,7 @@ const Footer = () => {
     fetchPages();
   }, []);
 
-  const getRoutePath = (slug) => {
-    const specialRoutes = {
-      'store': '/store',
-      'contact': '/contact',
-      'about': '/about',
-      'return': '/return',
-      'faq': '/faq',
-      'terms-conditions': '/terms-conditions',
-      'privacy-policy': '/privacy-policy'
-    };
-    return specialRoutes[slug] || `/page/${slug}`;
-  };
+  const getRoutePath = (slug) => `/${slug}`;
 
   const currentYear = new Date().getFullYear();
 
@@ -103,7 +74,7 @@ const Footer = () => {
           {/* Section 2: Quick Links */}
           <div className="footer-section links-section">
             <h4 className="footer-heading">QUICK LINKS</h4>
-            <ul className="footer-links two-columns">
+            <ul className="footer-links">
               {!loading && quickLinks.map((link, index) => (
                 <li key={index}>
                   <Link to={getRoutePath(link.slug)}>
@@ -112,14 +83,7 @@ const Footer = () => {
                   </Link>
                 </li>
               ))}
-              {loading && (
-                <>
-                  <li><Link to="/about"><FaChevronRight />About Us</Link></li>
-                  <li><Link to="/contact"><FaChevronRight />Contact Us</Link></li>
-                  <li><Link to="/return"><FaChevronRight />Return Policy</Link></li>
-                  <li><Link to="/faq"><FaChevronRight />FAQs</Link></li>
-                </>
-              )}
+              {loading && <li className="links-loading">Loading...</li>}
             </ul>
           </div>
 
