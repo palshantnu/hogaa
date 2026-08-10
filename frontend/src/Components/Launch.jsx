@@ -201,15 +201,10 @@ if (!product.is_variation || !product.variation_id) {
     );
   };
 
-  // Get products for each section
-  const newLaunchesProducts = getProductsByTag('new-launch');
-  const bestsellersProducts = getProductsByTag('bestseller');
-  const eliteEditionProducts = getProductsByTag('elite');
-
-  // If no products with specific tags, use all products as fallback
-  const finalNewLaunches = newLaunchesProducts.length > 0 ? newLaunchesProducts : allProducts.slice(0, 16);
-  const finalBestsellers = bestsellersProducts.length > 0 ? bestsellersProducts : allProducts.slice(0, 16);
-  const finalEliteEdition = eliteEditionProducts.length > 0 ? eliteEditionProducts : allProducts.slice(0, 16);
+  // Get products for each section — driven purely by the tags set in admin
+  const finalNewLaunches = getProductsByTag('new-launch');
+  const finalBestsellers = getProductsByTag('bestseller');
+  const finalEliteEdition = getProductsByTag('elite');
 
   // Render product grid component
   const renderProductGrid = (products, title, section, productCount, bannerImg) => {

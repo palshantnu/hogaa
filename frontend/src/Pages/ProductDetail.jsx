@@ -800,7 +800,7 @@ const ProductDetail = () => {
             return isOnline && retailers.length > 0 ? (
               <div className="buy-online-row">
                 <button className="buy-online-btn" onClick={() => setIsOnlineSidebarOpen(true)}>
-                   Buy Online
+                   Buy from Amazon, Flipkart & Similar platforms
                 </button>
               </div>
             ) : null;

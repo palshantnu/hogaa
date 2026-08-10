@@ -75,6 +75,7 @@ router.post('/delete/:id', adminController.deleteProduct);
 router.post('/delete-image/:id/:image', adminController.deleteProductImage);
 router.post('/delete-video/:id/:video', adminController.deleteProductVideo);
 router.post('/toggle-status/:id', adminController.toggleProductStatus);
+router.post('/toggle-tag/:id', adminController.toggleProductTag);
 
 // Attribute routes
 router.get('/attributes', adminController.getAttributes);

@@ -323,6 +323,7 @@ getProducts: async (req, res) => {
                         has_variations: false,
                         is_variation: true,
                         parent_id: productData.id,
+                        tags: productData.tags,
                         attributes: attributeDetails,
                         cgst_rate: variation.cgst_rate,
                         sgst_rate: variation.sgst_rate,
@@ -352,6 +353,7 @@ getProducts: async (req, res) => {
                     has_variations: productData.has_variations,
                     is_variation: false,
                     parent_id: null,
+                    tags: productData.tags,
                     cgst_rate: productData.cgst_rate,
                     sgst_rate: productData.sgst_rate,
                     igst_rate: productData.igst_rate

@@ -1673,6 +1673,35 @@ reorderVariationVideos: async (req, res) => {
         }
     },
 
+    // Add/remove a single section tag (new-launch / bestseller / elite) on a product,
+    // independent of the other sections' tags.
+    toggleProductTag: async (req, res) => {
+        const ALLOWED_TAGS = ['new-launch', 'bestseller', 'elite'];
+        try {
+            const { tag } = req.body;
+            if (!ALLOWED_TAGS.includes(tag)) {
+                return res.status(400).json({ success: false, message: 'Invalid tag' });
+            }
+
+            const product = await Product.findByPk(req.params.id);
+            if (!product) {
+                return res.status(404).json({ success: false });
+            }
+
+            const currentTags = Array.isArray(product.tags) ? product.tags : [];
+            const hasTag = currentTags.includes(tag);
+            const newTags = hasTag
+                ? currentTags.filter(t => t !== tag)
+                : [...currentTags, tag];
+
+            await product.update({ tags: newTags });
+            res.json({ success: true, tags: newTags, active: !hasTag });
+        } catch (error) {
+            console.error('Toggle product tag error:', error);
+            res.status(500).json({ success: false });
+        }
+    },
+
     // ==================== ORDERS ====================
    // ==================== ORDERS ====================
 getOrders: async (req, res) => {

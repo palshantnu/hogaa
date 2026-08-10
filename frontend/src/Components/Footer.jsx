@@ -89,16 +89,15 @@ const Footer = () => {
               {/* <span className="logo-text">hogaa</span> */}
             </div>
             <p className="brand-description">
-              Premium quality cosmetics for the modern woman. 
-              Discover beauty that speaks for itself.
+              For every Face | For every Age | For You
             </p>
-            <div className="newsletter-box">
+            {/* <div className="newsletter-box">
               <h5>Subscribe to our newsletter</h5>
               <div className="newsletter-input">
                 <input type="email" placeholder="Your email address" />
                 <button type="button">→</button>
               </div>
-            </div>
+            </div> */}
           </div>
 
           {/* Section 2: Quick Links */}
