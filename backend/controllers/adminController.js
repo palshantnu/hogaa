@@ -92,9 +92,12 @@ function compressVideo(filePath) {
     });
 }
 
-// Compress a batch of newly uploaded videos in the background (non-blocking)
+// Compress a batch of newly uploaded videos in the background (non-blocking).
+// Animated GIFs uploaded into the same "video" fields are left untouched -
+// re-encoding them with a video codec would break the format.
 function compressVideos(filenames, dir) {
     (filenames || []).forEach(filename => {
+        if (path.extname(filename).toLowerCase() === '.gif') return;
         const videoPath = path.join(__dirname, dir, filename);
         compressVideo(videoPath).catch(err => console.error('Compression error:', err));
     });

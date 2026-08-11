@@ -35,13 +35,18 @@ const upload = multer({
                 cb(new Error('Only image files are allowed for images'));
             }
         } else if (file.fieldname === 'video') {
+            // Either a real video or an animated GIF is accepted here - whichever gets uploaded works.
+            const fileExt = path.extname(file.originalname).toLowerCase();
+            if (fileExt === '.gif' && file.mimetype === 'image/gif') {
+                return cb(null, true);
+            }
             const allowedTypes = /mp4|webm|ogg|mov/;
-            const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
+            const extname = allowedTypes.test(fileExt);
             const mimetype = allowedTypes.test(file.mimetype);
             if (mimetype && extname) {
                 return cb(null, true);
             } else {
-                cb(new Error('Only video files are allowed for videos'));
+                cb(new Error('Only video or GIF files are allowed for videos'));
             }
         } else if (file.fieldname === 'video_poster') {
             const allowedTypes = /jpeg|jpg|png/;

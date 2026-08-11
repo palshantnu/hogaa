@@ -71,22 +71,24 @@
                                     <div id="videoSection" class="col-md-12 mb-3" style="<%= banner && banner.media_type === 'video' ? 'display: block;' : 'display: none;' %>">
                                         <div class="mb-3">
                                             <label class="form-label">Video File</label>
-                                          <input type="file" name="video" class="form-control" accept="video/mp4,video/webm,video/ogg" onchange="previewVideo(this)">
-                                            <small class="text-muted">Supported formats: MP4, WebM, OGG (Max 50MB)</small>
-                                            
+                                          <input type="file" name="video" class="form-control" accept="video/mp4,video/webm,video/ogg,image/gif" onchange="previewVideo(this)">
+                                            <small class="text-muted">Supported formats: MP4, WebM, OGG, or GIF (Max 50MB)</small>
+
                                             <% if (banner && banner.video) { %>
                                                 <div class="preview-container">
-                                                    <video class="preview-video" controls style="max-width: 300px;">
-                                                        <source src="/uploads/banners/<%= banner.video %>" type="video/mp4">
-                                                        Your browser does not support the video tag.
-                                                    </video>
+                                                    <% if (banner.video.toLowerCase().endsWith('.gif')) { %>
+                                                        <img src="/uploads/banners/<%= banner.video %>" class="preview-video" style="max-width: 300px;">
+                                                    <% } else { %>
+                                                        <video class="preview-video" controls style="max-width: 300px;">
+                                                            <source src="/uploads/banners/<%= banner.video %>" type="video/mp4">
+                                                            Your browser does not support the video tag.
+                                                        </video>
+                                                    <% } %>
                                                     <br>
                                                     <small class="text-muted">Current video</small>
                                                 </div>
                                             <% } %>
-                                            <div id="videoPreviewContainer" style="display: none;">
-                                                <video class="preview-video" controls style="max-width: 300px;"></video>
-                                            </div>
+                                            <div id="videoPreviewContainer" style="display: none;"></div>
                                         </div>
 
                                         <div class="mb-3">
@@ -190,15 +192,18 @@
 
         function previewVideo(input) {
             const previewContainer = document.getElementById('videoPreviewContainer');
-            const video = previewContainer.querySelector('video');
-            
+
             if (input.files && input.files[0]) {
+                const file = input.files[0];
+                const isGif = file.type === 'image/gif' || file.name.toLowerCase().endsWith('.gif');
                 const reader = new FileReader();
                 reader.onload = function(e) {
-                    video.src = e.target.result;
+                    previewContainer.innerHTML = isGif
+                        ? `<img class="preview-video" style="max-width:300px;" src="${e.target.result}">`
+                        : `<video class="preview-video" controls style="max-width:300px;" src="${e.target.result}"></video>`;
                     previewContainer.style.display = 'block';
                 }
-                reader.readAsDataURL(input.files[0]);
+                reader.readAsDataURL(file);
             }
         }
 

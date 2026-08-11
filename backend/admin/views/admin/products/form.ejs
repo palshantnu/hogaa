@@ -30,7 +30,7 @@
         .existing-image.dragging, .variation-thumb.dragging, .existing-video.dragging, .variation-video-thumb.dragging { opacity: 0.4; }
         .existing-image.drag-over, .variation-thumb.drag-over, .existing-video.drag-over, .variation-video-thumb.drag-over { outline: 2px dashed #667eea; outline-offset: 2px; }
         .variation-video-thumb { position: relative; display: inline-block; margin: 2px; width: 90px; }
-        .variation-video-thumb video { width: 90px; height: 60px; object-fit: cover; border-radius: 4px; border: 1px solid #ddd; }
+        .variation-video-thumb video, .variation-video-thumb img { width: 90px; height: 60px; object-fit: cover; border-radius: 4px; border: 1px solid #ddd; }
         .variation-video-thumb .remove-variation-img { position: absolute; top: -8px; right: -8px; background: red; color: white; border-radius: 50%; width: 18px; height: 18px; font-size: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
         .variation-video-thumb .order-badge { width: 16px; height: 16px; font-size: 9px; top: -6px; left: -6px; }
         .order-badge {
@@ -143,8 +143,8 @@
 
                             <div class="col-md-12 mb-3">
                                 <label class="form-label">Product Videos <span class="text-muted">(Optional)</span></label>
-                                <input type="file" name="product_videos" class="form-control" accept="video/*" multiple id="productVideos">
-                                <small class="text-muted">You can select multiple videos (MP4, MOV, AVI, MKV, WEBM). They're compressed automatically after upload.</small>
+                                <input type="file" name="product_videos" class="form-control" accept="video/*,image/gif" multiple id="productVideos">
+                                <small class="text-muted">You can select multiple videos or GIFs (MP4, MOV, AVI, MKV, WEBM, GIF). Videos are compressed automatically after upload; GIFs are kept as-is.</small>
 
                                 <% if (product && product.product_videos && product.product_videos.length > 0) { %>
                                     <div class="mt-3">
@@ -154,7 +154,11 @@
                                             <% product.product_videos.forEach(function(vid, index) { %>
                                                 <div class="existing-video position-relative" style="width: 180px;" data-video="<%= vid %>" draggable="true">
                                                     <span class="order-badge"><%= index + 1 %></span>
-                                                    <video src="/uploads/products/<%= vid %>" controls style="width: 100%; border-radius: 8px; border: 2px solid #e0e0e0;"></video>
+                                                    <% if (vid.toLowerCase().endsWith('.gif')) { %>
+                                                        <img src="/uploads/products/<%= vid %>" style="width: 100%; border-radius: 8px; border: 2px solid #e0e0e0;">
+                                                    <% } else { %>
+                                                        <video src="/uploads/products/<%= vid %>" controls style="width: 100%; border-radius: 8px; border: 2px solid #e0e0e0;"></video>
+                                                    <% } %>
                                                     <button type="button" class="btn btn-sm btn-danger position-absolute top-0 end-0 m-1 rounded-circle"
                                                             style="width: 24px; height: 24px; padding: 0; font-size: 12px; line-height: 20px;"
                                                             onclick="removeExistingVideo('<%= vid %>', this)">
@@ -639,9 +643,13 @@ $(document).on('change', 'input[type="file"][name^="variation_videos_"]', functi
     if (this.files) {
         Array.from(this.files).forEach(file => {
             var url = URL.createObjectURL(file);
+            var isGif = file.type === 'image/gif' || file.name.toLowerCase().endsWith('.gif');
+            var mediaTag = isGif
+                ? `<img src="${url}" style="width: 100%; height: 60px; object-fit: cover; border-radius: 4px; border: 1px solid #ddd;">`
+                : `<video src="${url}" muted style="width: 100%; height: 60px; object-fit: cover; border-radius: 4px; border: 1px solid #ddd;"></video>`;
             previewContainer.append(`
                 <div class="variation-video-thumb">
-                    <video src="${url}" muted style="width: 100%; height: 60px; object-fit: cover; border-radius: 4px; border: 1px solid #ddd;"></video>
+                    ${mediaTag}
                 </div>
             `);
         });
@@ -797,7 +805,7 @@ function buildVariationMatrix(attributeValues) {
         html += `<td><input type="number" step="0.01" name="variations[${idx}][igst_rate]" class="form-control form-control-sm" value="0" oninput="calculateVariationBasePrice(${idx})"></td>`;
         html += `<td><input type="file" name="variation_images_${idx}" class="form-control form-control-sm" accept="image/*" multiple>
                  <div class="variation-image-preview d-flex flex-wrap gap-1 mt-2"></div></td>`;
-        html += `<td><input type="file" name="variation_videos_${idx}" class="form-control form-control-sm" accept="video/*" multiple>
+        html += `<td><input type="file" name="variation_videos_${idx}" class="form-control form-control-sm" accept="video/*,image/gif" multiple>
                  <div class="variation-video-preview d-flex flex-wrap gap-1 mt-2"></div></td>`;
         html += `<td style="min-width:220px">
                     <div class="form-check form-switch mb-2">
@@ -957,15 +965,19 @@ function buildVariationMatrix(attributeValues) {
 
             // Videos column with thumbnails
             html += `<td>`;
-            html += `<input type="file" name="variation_videos_${idx}" class="form-control form-control-sm mb-2" accept="video/*" multiple>`;
+            html += `<input type="file" name="variation_videos_${idx}" class="form-control form-control-sm mb-2" accept="video/*,image/gif" multiple>`;
             html += `<div class="existing-variation-videos d-flex flex-wrap gap-1" id="variation_videos_${existingVar ? existingVar.id : idx}_container">`;
 
             if (existingVar && existingVar.videos && existingVar.videos.length > 0) {
                 existingVar.videos.forEach(function(vid, vidIdx) {
+                    var isGif = vid.toLowerCase().endsWith('.gif');
+                    var mediaTag = isGif
+                        ? `<img src="/uploads/products/variations/${vid}">`
+                        : `<video src="/uploads/products/variations/${vid}" muted controls></video>`;
                     html += `
                         <div class="variation-video-thumb" data-video="${vid}" draggable="true">
                             <span class="order-badge">${vidIdx + 1}</span>
-                            <video src="/uploads/products/variations/${vid}" muted controls></video>
+                            ${mediaTag}
                             <button type="button" class="remove-variation-img" onclick="removeVariationVideo(${existingVar.id}, '${vid}', this)">
                                 <i class="fas fa-times"></i>
                             </button>

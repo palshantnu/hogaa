@@ -528,7 +528,9 @@ const ProductDetail = () => {
       alt: `${product.name} view ${index + 1}`
     })),
     ...productVideoUrls.map((videoUrl, index) => ({
-      type: "video",
+      // Uploaded GIFs land in the same "videos" array as real videos - render
+      // them as images since <video> can't play a .gif source.
+      type: /\.gif($|\?)/i.test(videoUrl) ? "image" : "video",
       url: videoUrl,
       alt: `${product.name} video ${index + 1}`
     }))

@@ -55,8 +55,9 @@ const HeroSlider = () => {
         {banners.map((banner) => (
           <SwiperSlide key={banner.id}>
             <div className="slide">
-              {/* Render based on media type */}
-              {banner.media_type === 'video' ? (
+              {/* Render based on media type - a GIF uploaded into the "video" slot still
+                  has media_type "video" in the DB, so it needs an <img>, not <video>. */}
+              {banner.media_type === 'video' && !/\.gif($|\?)/i.test(banner.media_url || '') ? (
                 <div className="video-container">
                   <video
                     autoPlay

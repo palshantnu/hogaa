@@ -42,6 +42,13 @@ const upload = multer({
         const isVideoField = file.fieldname === 'product_video' ||
             file.fieldname === 'product_videos' ||
             file.fieldname.startsWith('variation_videos_');
+
+        // The "video" fields also accept animated GIFs - either one uploads fine.
+        const isGif = fileExt === '.gif' && file.mimetype === 'image/gif';
+        if (isVideoField && isGif) {
+            return cb(null, true);
+        }
+
         const allowedTypes = isVideoField ? videoTypes : imageTypes;
         const extname = allowedTypes.test(fileExt);
         const mimetype = isVideoField ? file.mimetype.startsWith('video/') : allowedTypes.test(file.mimetype);
@@ -49,7 +56,7 @@ const upload = multer({
         if (mimetype && extname) {
             return cb(null, true);
         } else {
-            cb(new Error(isVideoField ? 'Only video files are allowed' : 'Only image files are allowed'));
+            cb(new Error(isVideoField ? 'Only video or GIF files are allowed' : 'Only image files are allowed'));
         }
     }
 });
