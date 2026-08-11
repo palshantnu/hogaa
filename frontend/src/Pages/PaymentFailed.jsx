@@ -70,7 +70,7 @@ const PaymentFailed = () => {
 
         <div className="help-text">
           <Headphones size={16} />
-          <span>Need assistance? Call us at <strong>+91 98765 43210</strong> or email <strong>support@hogaacosmetics.com</strong></span>
+          <span>Need assistance? Call us at <strong>+91 7208812112</strong> or email <strong>hello@hogaacosmetics.com</strong></span>
         </div>
       </div>
     </div>

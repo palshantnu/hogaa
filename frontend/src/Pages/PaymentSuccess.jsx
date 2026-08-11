@@ -99,7 +99,7 @@ const PaymentSuccess = () => {
         </div>
 
         <div className="help-text">
-          <p>Need help? Contact us at <a href="mailto:support@hogaacosmetics.com">support@hogaacosmetics.com</a></p>
+          <p>Need help? Contact us at <a href="mailto:hello@hogaacosmetics.com">support@hogaacosmetics.com</a></p>
         </div>
       </div>
     </div>
