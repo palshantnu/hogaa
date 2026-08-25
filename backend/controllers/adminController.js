@@ -441,11 +441,16 @@ getDashboard: async (req, res) => {
                 return res.redirect('/admin/auth/login');
             }
 
-            const categories = await Category.findAll({
-                order: [['sort_order', 'ASC'], ['name', 'ASC']]
+            const { page = 1, limit = 20 } = req.query;
+            const offset = (page - 1) * limit;
+
+            const categories = await Category.findAndCountAll({
+                order: [['sort_order', 'ASC'], ['name', 'ASC']],
+                limit: parseInt(limit),
+                offset: parseInt(offset)
             });
 
-            for (let category of categories) {
+            for (let category of categories.rows) {
                 const productCount = await Product.count({
                     where: { category_id: category.id }
                 });
@@ -455,7 +460,12 @@ getDashboard: async (req, res) => {
             res.render('admin/categories/list', {
                 title: 'Categories',
                 admin: req.session.admin,
-                categories: categories
+                categories: categories.rows,
+                pagination: {
+                    total: categories.count,
+                    page: parseInt(page),
+                    pages: Math.ceil(categories.count / limit)
+                }
             });
         } catch (error) {
             console.error('Get categories error:', error);
@@ -577,15 +587,26 @@ getDashboard: async (req, res) => {
         try {
             if (!req.session.admin) return res.redirect('/admin/auth/login');
 
-            const attributes = await Attribute.findAll({
+            const { page = 1, limit = 20 } = req.query;
+            const offset = (page - 1) * limit;
+
+            const attributes = await Attribute.findAndCountAll({
                 include: [{ model: AttributeValue, as: 'values' }],
-                order: [['created_at', 'DESC']]
+                order: [['created_at', 'DESC']],
+                limit: parseInt(limit),
+                offset: parseInt(offset),
+                distinct: true
             });
 
             res.render('admin/attributes/list', {
                 title: 'Product Attributes',
                 admin: req.session.admin,
-                attributes
+                attributes: attributes.rows,
+                pagination: {
+                    total: attributes.count,
+                    page: parseInt(page),
+                    pages: Math.ceil(attributes.count / limit)
+                }
             });
         } catch (error) {
             console.error('Get attributes error:', error);
