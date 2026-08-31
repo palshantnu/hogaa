@@ -96,7 +96,17 @@
                                     <% } %>
                                 </select>
                             </div>
-                            
+
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Sequence (Display Order)</label>
+                                <input type="number" min="1" step="1" name="sequence" class="form-control"
+                                       value="<%= product ? product.sequence : (typeof nextSequence !== 'undefined' ? nextSequence : '') %>">
+                                <small class="text-muted">
+                                    Lower number shows first. New products default to the next number after the last one.
+                                    If you pick a number another product already has, that product (and the ones after it) shift down by one.
+                                </small>
+                            </div>
+
                             <div class="col-md-12 mb-3">
                                 <label class="form-label">Short Description</label>
                                 <textarea name="short_description" class="form-control" rows="2"><%= product ? product.short_description : '' %></textarea>

@@ -110,6 +110,12 @@ const Product = sequelize.define('Product', {
     type: DataTypes.BOOLEAN,
     defaultValue: true
   },
+  sequence: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+    defaultValue: 0,
+    comment: 'Manual display order; lower number is shown first'
+  },
   views: {
     type: DataTypes.INTEGER,
     defaultValue: 0

@@ -119,6 +119,58 @@ function buildRetailers(retailersBody, files, filePrefix) {
     return retailers;
 }
 
+// Resolve a product's display sequence and shift the other products so the
+// list stays a gap-free 1..N ordering with no duplicate numbers.
+//  - New product  -> inserted at the requested slot, everything at/after it moves down.
+//  - Existing one -> moved to the requested slot, the block in between slides by one.
+// An empty / invalid / too-large value parks the product at the end of the list.
+// Returns the final integer sequence to store on the product itself.
+async function applyProductSequence(requestedValue, { productId = null, transaction } = {}) {
+    const total = await Product.count({ transaction });
+    let requested = parseInt(requestedValue, 10);
+
+    if (productId) {
+        // ----- Editing an existing product: reorder within the list -----
+        const current = await Product.findByPk(productId, { transaction });
+        const oldSeq = current && current.sequence > 0 ? current.sequence : total;
+
+        let newSeq = Number.isFinite(requested) && requested >= 1 ? requested : oldSeq;
+        if (newSeq > total) newSeq = total;
+        if (newSeq === oldSeq) return oldSeq;
+
+        if (newSeq < oldSeq) {
+            // Moving towards the front: push [newSeq, oldSeq - 1] down by one.
+            await Product.increment('sequence', {
+                by: 1,
+                where: { id: { [Op.ne]: productId }, sequence: { [Op.gte]: newSeq, [Op.lt]: oldSeq } },
+                transaction
+            });
+        } else {
+            // Moving towards the end: pull [oldSeq + 1, newSeq] up by one.
+            await Product.increment('sequence', {
+                by: -1,
+                where: { id: { [Op.ne]: productId }, sequence: { [Op.gt]: oldSeq, [Op.lte]: newSeq } },
+                transaction
+            });
+        }
+        return newSeq;
+    }
+
+    // ----- Brand-new product: insert at the requested slot -----
+    const lastSlot = total + 1;
+    let newSeq = Number.isFinite(requested) && requested >= 1 ? requested : lastSlot;
+    if (newSeq > lastSlot) newSeq = lastSlot;
+
+    if (newSeq < lastSlot) {
+        await Product.increment('sequence', {
+            by: 1,
+            where: { sequence: { [Op.gte]: newSeq } },
+            transaction
+        });
+    }
+    return newSeq;
+}
+
 const adminController = {
     // ==================== DASHBOARD ====================
 getDashboard: async (req, res) => {
@@ -895,7 +947,7 @@ updateAttribute: async (req, res) => {
                 ],
                 limit: parseInt(limit),
                 offset: parseInt(offset),
-                order: [['created_at', 'DESC']]
+                order: [['sequence', 'ASC'], ['created_at', 'DESC']]
             });
 
             // For each product, get variations if needed
@@ -995,12 +1047,15 @@ updateAttribute: async (req, res) => {
                 include: [{ model: AttributeValue, as: 'values' }]
             });
 
+            const productCount = await Product.count();
+
             res.render('admin/products/form', {
                 title: 'Add Product',
                 admin: req.session.admin,
                 product: null,
                 categories,
                 globalAttributes,
+                nextSequence: productCount + 1,  // pre-fill: next number after the last product
                 variations: [],  // Add empty array for add mode
                 productAttributes: []  // Add empty array for add mode
             });
@@ -1018,7 +1073,7 @@ updateAttribute: async (req, res) => {
                 name, description, short_description, category_id, slug: customSlug,
                 price, compare_price, stock, cgst_rate, sgst_rate, igst_rate,
                 product_type, cost_per_item, weight, is_featured,
-                is_online
+                is_online, sequence
             } = req.body;
 
             const images = req.files ? req.files.filter(f => f.fieldname === 'images').map(file => file.filename) : [];
@@ -1049,6 +1104,9 @@ updateAttribute: async (req, res) => {
                 basePrice = (finalPrice * 100) / (100 + totalGstRate);
             }
 
+            // Place the product in the display order (shifts the others if needed).
+            const finalSequence = await applyProductSequence(sequence, { transaction });
+
             const productData = {
                 name,
                 slug,
@@ -1057,6 +1115,7 @@ updateAttribute: async (req, res) => {
                 category_id: parseInt(category_id),
                 images,
                 product_videos: productVideos,
+                sequence: finalSequence,
                 is_active: true,
                 is_featured: is_featured === 'on' || is_featured === 'true',
                 has_variations: product_type === 'variable',
@@ -1222,6 +1281,7 @@ updateAttribute: async (req, res) => {
                 product: product,
                 categories: categories,
                 globalAttributes: globalAttributes,
+                nextSequence: product.sequence || 0,
                 variations: variations,
                 productAttributes: productAttributes,
                 hasVariations: product.has_variations
@@ -1247,7 +1307,7 @@ updateAttribute: async (req, res) => {
             product_type, cost_per_item, weight, is_featured,
             existing_images,
             existing_videos,
-            is_online
+            is_online, sequence
         } = req.body;
 
         // Handle images - start with existing images if provided
@@ -1328,6 +1388,9 @@ updateAttribute: async (req, res) => {
             updateData.cost_per_item = cost_per_item ? parseFloat(cost_per_item) : null;
             updateData.weight = weight ? parseFloat(weight) : null;
         }
+
+        // Re-position the product in the display order (shifts the others if needed).
+        updateData.sequence = await applyProductSequence(sequence, { productId: product.id, transaction });
 
         await product.update(updateData, { transaction });
 
@@ -1494,7 +1557,15 @@ updateAttribute: async (req, res) => {
         try {
             const product = await Product.findByPk(req.params.id);
             if (product) {
+                const removedSeq = product.sequence;
                 await product.destroy();
+                // Close the gap so the ordering stays 1..N.
+                if (removedSeq > 0) {
+                    await Product.increment('sequence', {
+                        by: -1,
+                        where: { sequence: { [Op.gt]: removedSeq } }
+                    });
+                }
             }
             res.redirect('/admin/products');
         } catch (error) {

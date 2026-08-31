@@ -270,9 +270,9 @@ getProducts: async (req, res) => {
                     required: false
                 }
             ],
-            order: [['created_at', 'DESC']]
+            order: [['sequence', 'ASC'], ['created_at', 'DESC']]
         });
-        
+
         for (const product of products) {
             const productData = product.toJSON();
             
@@ -869,7 +869,8 @@ getProductById: async (req, res) => {
             const products = await Product.findAll({
                 where: { category_id: category.id, is_active: true },
                 limit: 20,
-                attributes: ['id', 'name', 'slug', 'price', 'compare_price', 'images', 'product_videos', 'has_variations']
+                attributes: ['id', 'name', 'slug', 'price', 'compare_price', 'images', 'product_videos', 'has_variations'],
+                order: [['sequence', 'ASC'], ['created_at', 'DESC']]
             });
 
             res.json({ success: true, category, products });
@@ -907,7 +908,7 @@ getProductById: async (req, res) => {
                 case 'price_low': order = [['price', 'ASC']]; break;
                 case 'price_high': order = [['price', 'DESC']]; break;
                 case 'popular': order = [['sold_count', 'DESC']]; break;
-                default: order = [['created_at', 'DESC']];
+                default: order = [['sequence', 'ASC'], ['created_at', 'DESC']];
             }
 
             const products = await Product.findAndCountAll({
