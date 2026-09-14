@@ -1547,3 +1547,152 @@
 @media (max-width: 480px) {
   .buy-online-sidebar { width: 100vw; }
 }
+
+/* ===== Product video / GIF carousel ===== */
+.pd-video-section {
+  max-width: 1320px;
+  margin: 0 auto 34px;
+  padding: 26px 30px 30px;
+  background: #fff;
+  border-radius: 26px;
+  box-shadow: 0 18px 40px rgba(15, 15, 15, 0.06);
+}
+
+.pd-video-heading {
+  margin: 0 0 18px;
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #1a1a1a;
+}
+
+.pd-video-rail-wrap {
+  position: relative;
+}
+
+.pd-video-rail {
+  display: flex;
+  gap: 16px;
+  overflow-x: auto;
+  scroll-behavior: smooth;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  padding: 4px;
+}
+
+.pd-video-rail::-webkit-scrollbar {
+  display: none;
+}
+
+.pd-video-card {
+  position: relative;
+  flex: 0 0 auto;
+  width: 216px;
+  aspect-ratio: 9 / 16;
+  border: none;
+  padding: 0;
+  border-radius: 16px;
+  overflow: hidden;
+  background: #f1f1f1;
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.08);
+  cursor: pointer;
+}
+
+.pd-video-media {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.pd-video-play {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  background: rgba(0, 0, 0, 0.14);
+  pointer-events: none;
+  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.45));
+}
+
+.pd-video-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 3;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  border: none;
+  background: #fff;
+  color: #1a1a1a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18);
+  transition: transform 0.15s ease;
+}
+
+.pd-video-arrow:hover {
+  transform: translateY(-50%) scale(1.06);
+}
+
+.pd-video-arrow.left {
+  left: -14px;
+}
+
+.pd-video-arrow.right {
+  right: -14px;
+}
+
+.pd-clip-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: rgba(0, 0, 0, 0.88);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.pd-clip-modal-media {
+  max-width: min(420px, 92vw);
+  max-height: 88vh;
+  border-radius: 14px;
+  object-fit: contain;
+  background: #000;
+}
+
+.pd-clip-modal .close-modal {
+  position: absolute;
+  top: 18px;
+  right: 26px;
+  font-size: 40px;
+  color: #fff;
+  cursor: pointer;
+  line-height: 1;
+}
+
+@media (max-width: 720px) {
+  .pd-video-section {
+    padding: 18px 14px 20px;
+    border-radius: 20px;
+  }
+
+  .pd-video-heading {
+    font-size: 17px;
+  }
+
+  .pd-video-card {
+    width: 158px;
+  }
+
+  .pd-video-arrow {
+    display: none;
+  }
+}

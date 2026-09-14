@@ -34,12 +34,14 @@ const ProductDetail = () => {
   const scrollRef = useRef(null);
   const thumbnailRef = useRef(null);
   const videoRefs = useRef({});
+  const videoRailRef = useRef(null);
 
   const [selectedVariation, setSelectedVariation] = useState(null);
   const [selectedAttributes, setSelectedAttributes] = useState({});
   const [availableAttributes, setAvailableAttributes] = useState([]);
   const [variations, setVariations] = useState([]);
   const [isOnlineSidebarOpen, setIsOnlineSidebarOpen] = useState(false);
+  const [activeClip, setActiveClip] = useState(null);
 
   // Get current product URL
   const getCurrentUrl = () => {
@@ -322,6 +324,14 @@ const ProductDetail = () => {
     container.scrollBy({ left: direction * distance, behavior: "smooth" });
   };
 
+  const scrollVideoRail = (direction) => {
+    const container = videoRailRef.current;
+    if (!container) return;
+
+    const distance = Math.max(container.clientWidth * 0.8, 280);
+    container.scrollBy({ left: direction * distance, behavior: "smooth" });
+  };
+
   const handleAddToCart = async () => {
     const currentStock = getCurrentStock();
     if (currentStock === 0) {
@@ -518,23 +528,25 @@ const ProductDetail = () => {
   const videosToShow = (selectedVariation?.videos && selectedVariation.videos.length > 0)
     ? selectedVariation.videos
     : product.product_videos;
-  const productVideoUrls = (videosToShow && videosToShow.length > 0)
-    ? videosToShow.map((vid) => getVideoUrl(vid, product?.has_variations)).filter(Boolean)
+  // Video / GIF clips get their own carousel section below the gallery.
+  // GIFs and real videos both land in the same "videos" array - a GIF can't
+  // play in a <video> tag, so it is rendered as <img> instead.
+  const videoGalleryItems = (videosToShow && videosToShow.length > 0)
+    ? videosToShow
+        .map((vid) => getVideoUrl(vid, product?.has_variations))
+        .filter(Boolean)
+        .map((url, index) => ({
+          type: /\.gif($|\?)/i.test(url) ? "gif" : "video",
+          url,
+          key: `${url}-${index}`
+        }))
     : [];
-  const mediaItems = [
-    ...imageUrls.map((imageUrl, index) => ({
-      type: "image",
-      url: imageUrl,
-      alt: `${product.name} view ${index + 1}`
-    })),
-    ...productVideoUrls.map((videoUrl, index) => ({
-      // Uploaded GIFs land in the same "videos" array as real videos - render
-      // them as images since <video> can't play a .gif source.
-      type: /\.gif($|\?)/i.test(videoUrl) ? "image" : "video",
-      url: videoUrl,
-      alt: `${product.name} video ${index + 1}`
-    }))
-  ];
+  // Main gallery shows product images only.
+  const mediaItems = imageUrls.map((imageUrl, index) => ({
+    type: "image",
+    url: imageUrl,
+    alt: `${product.name} view ${index + 1}`
+  }));
 
   const handleGalleryScroll = () => {
     const container = scrollRef.current;
@@ -812,10 +824,95 @@ const ProductDetail = () => {
         </div>
       </div>
 
+      {videoGalleryItems.length > 0 && (
+        <div className="pd-video-section">
+          <h2 className="pd-video-heading">Watch in Action</h2>
+          <div className="pd-video-rail-wrap">
+            {videoGalleryItems.length > 1 && (
+              <button
+                className="pd-video-arrow left"
+                onClick={() => scrollVideoRail(-1)}
+                aria-label="Scroll videos left"
+              >
+                <ChevronLeft size={22} />
+              </button>
+            )}
+
+            <div className="pd-video-rail" ref={videoRailRef}>
+              {videoGalleryItems.map((item) => (
+                <button
+                  type="button"
+                  className="pd-video-card"
+                  key={item.key}
+                  onClick={() => setActiveClip(item)}
+                  aria-label={`Play ${product.name} clip`}
+                >
+                  {item.type === "gif" ? (
+                    <img
+                      src={item.url}
+                      alt={`${product.name} clip`}
+                      className="pd-video-media"
+                      loading="lazy"
+                    />
+                  ) : (
+                    <video
+                      src={item.url}
+                      className="pd-video-media"
+                      autoPlay
+                      muted
+                      loop
+                      playsInline
+                      preload="metadata"
+                    />
+                  )}
+                  {item.type === "video" && (
+                    <span className="pd-video-play"><PlayCircle size={44} /></span>
+                  )}
+                </button>
+              ))}
+            </div>
+
+            {videoGalleryItems.length > 1 && (
+              <button
+                className="pd-video-arrow right"
+                onClick={() => scrollVideoRail(1)}
+                aria-label="Scroll videos right"
+              >
+                <ChevronRight size={22} />
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+
       {isModalOpen && (
         <div className="image-zoom-modal" onClick={() => setIsModalOpen(false)}>
           <span className="close-modal">×</span>
           <img src={mainImage} alt="Zoomed" className="zoomed-img" />
+        </div>
+      )}
+
+      {activeClip && (
+        <div className="pd-clip-modal" onClick={() => setActiveClip(null)}>
+          <span className="close-modal">×</span>
+          {activeClip.type === "gif" ? (
+            <img
+              src={activeClip.url}
+              alt={`${product.name} clip`}
+              className="pd-clip-modal-media"
+              onClick={(e) => e.stopPropagation()}
+            />
+          ) : (
+            <video
+              src={activeClip.url}
+              className="pd-clip-modal-media"
+              controls
+              autoPlay
+              loop
+              playsInline
+              onClick={(e) => e.stopPropagation()}
+            />
+          )}
         </div>
       )}
 
