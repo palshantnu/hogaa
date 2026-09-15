@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { getCart, placeOrder } from "../utils/cart";
+import { getCart, placeOrder, fetchShippingConfig, calculateShippingCharge } from "../utils/cart";
 import { useAuth } from "../context/AuthContext";
 import {
   Truck,
@@ -54,6 +54,12 @@ const Checkout = () => {
     paymentMethod: 'payu'
   });
   const [orderResult, setOrderResult] = useState(null);
+  const [shippingConfig, setShippingConfig] = useState(null);
+
+  // Load shipping charge config (same state / other state) once
+  useEffect(() => {
+    fetchShippingConfig().then(setShippingConfig);
+  }, []);
 
   // Auto-fill user details
   useEffect(() => {
@@ -183,9 +189,13 @@ const Checkout = () => {
     return acc + price * item.quantity;
   }, 0);
 
+  // Shipping charge is derived live from the state typed into the address form
+  const shippingCharge = calculateShippingCharge(formData.state, shippingConfig);
+  const displayTotals = { ...cartTotals, shipping: shippingCharge };
+
   const validateShippingForm = () => {
     if (!formData.firstName || !formData.lastName || !formData.email ||
-      !formData.address || !formData.city || !formData.pincode || !formData.phone) {
+      !formData.address || !formData.city || !formData.state || !formData.pincode || !formData.phone) {
       alert("Please fill in all shipping details");
       return false;
     }
@@ -221,7 +231,7 @@ const Checkout = () => {
         body: JSON.stringify({
           order_id: order.id,
           user_id: user?.id,
-          amount: cartTotals.subtotal
+          amount: order.total
         })
       });
       
@@ -453,13 +463,14 @@ console.log('cart',cart);
                     />
                   </div>
                   <div className="input-group">
-                    <label>State</label>
+                    <label>State <span className="required">*</span></label>
                     <input
                       type="text"
                       name="state"
                       placeholder="State"
                       value={formData.state}
                       onChange={handleInputChange}
+                      required
                     />
                   </div>
                 </div>
@@ -508,7 +519,7 @@ console.log('cart',cart);
             <div className="order-summary-section">
               <OrderSummary 
                 cart={cart} 
-                cartTotals={cartTotals} 
+                cartTotals={displayTotals} 
                 getImageUrl={getImageUrl}
               />
               <button className="next-step-btn" onClick={handleNextStep}>
@@ -543,7 +554,7 @@ console.log('cart',cart);
             <div className="order-summary-section">
               <OrderSummary 
                 cart={cart} 
-                cartTotals={cartTotals} 
+                cartTotals={displayTotals} 
                 getImageUrl={getImageUrl}
               />
               <div className="step-buttons">
@@ -580,7 +591,7 @@ console.log('cart',cart);
             <div className="order-summary-section">
               <OrderSummary 
                 cart={cart} 
-                cartTotals={cartTotals} 
+                cartTotals={displayTotals} 
                 getImageUrl={getImageUrl}
               />
               <div className="step-buttons">
@@ -668,17 +679,22 @@ const OrderSummary = ({ cart, cartTotals, getImageUrl }) => {
           <span>Base Price (Excluding GST)</span>
           <span>₹{(cartTotals.base_total || (cartTotals.subtotal - cartTotals.tax)).toFixed(2)}</span>
         </div>
-        
+
+        <div className="price-row">
+          <span>Shipping Charge</span>
+          <span>{cartTotals.shipping > 0 ? `₹${cartTotals.shipping.toFixed(2)}` : 'FREE'}</span>
+        </div>
+
         <div className="price-divider"></div>
-        
+
         <div className="price-row total-row">
           <span>Total Amount</span>
-          <span>₹{cartTotals.subtotal.toFixed(2)}</span>
+          <span>₹{(cartTotals.subtotal + (cartTotals.shipping || 0)).toFixed(2)}</span>
         </div>
       </div>
-      
+
       <div className="trust-badges">
-        <div className="trust-item"><Truck size={16} /><span>Free Shipping</span></div>
+        <div className="trust-item"><Truck size={16} /><span>Fast Delivery</span></div>
         <div className="trust-item"><Shield size={16} /><span>Secure Payment</span></div>
         <div className="trust-item"><CreditCard size={16} /><span>100% Refund</span></div>
       </div>

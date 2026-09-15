@@ -2004,6 +2004,40 @@ getOrders: async (req, res) => {
         }
     },
 
+    getOrderInvoice: async (req, res) => {
+        try {
+            if (!req.session.admin) {
+                return res.redirect('/admin/auth/login');
+            }
+
+            const order = await Order.findByPk(req.params.id, {
+                include: [
+                    { model: User, as: 'user', attributes: ['id', 'name', 'email', 'mobile', 'address'] },
+                    {
+                        model: OrderItem,
+                        as: 'items',
+                        include: [
+                            { model: Product, as: 'product', attributes: ['id', 'name', 'images'] },
+                            { model: ProductVariation, as: 'variation' }
+                        ]
+                    }
+                ]
+            });
+
+            if (!order) {
+                return res.redirect('/admin/orders');
+            }
+
+            res.render('admin/orders/invoice', {
+                title: `Invoice #${order.order_number}`,
+                order
+            });
+        } catch (error) {
+            console.error('Get order invoice error:', error);
+            res.status(500).send('Error loading invoice');
+        }
+    },
+
     updateOrderStatus: async (req, res) => {
         try {
             const { status } = req.body;

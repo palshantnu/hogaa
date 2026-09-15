@@ -5,6 +5,7 @@ const path = require('path');
 const fs = require('fs');
 const SiteSetting = require('../../models/SiteSetting');
 const { DEFAULT_APP_PROMO } = require('../../utils/appPromoDefaults');
+const { getShippingSettings, SHIPPING_SETTING_KEY } = require('../../utils/shipping');
 
 const isAuthenticated = (req, res, next) => {
     if (req.session && req.session.admin) return next();
@@ -58,11 +59,14 @@ router.get('/', isAuthenticated, async (req, res) => {
             promo = { ...DEFAULT_APP_PROMO, ...JSON.parse(promoSetting.value) };
         }
 
+        const shipping = await getShippingSettings();
+
         res.render('admin/settings', {
             title: 'Site Settings',
             admin: req.session.admin,
             messages,
             promo,
+            shipping,
             success: req.query.success
         });
     } catch (error) {
@@ -83,6 +87,25 @@ router.post('/marquee', isAuthenticated, async (req, res) => {
     } catch (error) {
         console.error('Save settings error:', error);
         res.status(500).send('Error saving settings');
+    }
+});
+
+// POST save shipping charges (same-state vs other-state)
+router.post('/shipping', isAuthenticated, async (req, res) => {
+    try {
+        const { homeState, sameStateCharge, otherStateCharge } = req.body;
+
+        const shipping = {
+            homeState: (homeState || '').trim(),
+            sameStateCharge: parseFloat(sameStateCharge) || 0,
+            otherStateCharge: parseFloat(otherStateCharge) || 0
+        };
+
+        await SiteSetting.upsert({ key: SHIPPING_SETTING_KEY, value: JSON.stringify(shipping) });
+        res.redirect('/admin/settings?success=1');
+    } catch (error) {
+        console.error('Save shipping settings error:', error);
+        res.status(500).send('Error saving shipping settings');
     }
 });
 

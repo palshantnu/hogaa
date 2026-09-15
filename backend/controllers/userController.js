@@ -3,6 +3,7 @@ const { Op } = require('sequelize');
 const bcrypt = require('bcrypt');
 const crypto = require('crypto');
 const firebaseAdmin = require('../firebase/firebaseAdmin');
+const { calculateShippingCharge } = require('../utils/shipping');
 
 async function updateCartTotals(cartId) {
     const cartItems = await CartItem.findAll({
@@ -1575,7 +1576,7 @@ getProductById: async (req, res) => {
         }
 
         const orderNumber = 'ORD' + Date.now();
-        const shipping_charge = total > 500 ? 0 : 40;
+        const shipping_charge = await calculateShippingCharge(shippingDetails.state);
         const finalTotal = total + shipping_charge;
 
         const order = await Order.create({

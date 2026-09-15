@@ -242,6 +242,27 @@ export const getCartCount = async (user) => {
   } catch { return 0; }
 };
 
+// ─── Shipping charge (same state vs other state) ──────────────────────────────
+export const fetchShippingConfig = async () => {
+  try {
+    const res = await fetch(`${API}/api/settings/shipping-charge`);
+    const data = await res.json();
+    if (data.success && data.shipping) return data.shipping;
+  } catch (e) {
+    console.error('Fetch shipping config error:', e);
+  }
+  return { homeState: 'Maharashtra', sameStateCharge: 40, otherStateCharge: 70 };
+};
+
+export const calculateShippingCharge = (state, shippingConfig) => {
+  if (!shippingConfig) return 0;
+  const homeState = (shippingConfig.homeState || '').trim().toLowerCase();
+  const customerState = (state || '').trim().toLowerCase();
+  const isSameState = !!homeState && homeState === customerState;
+  const charge = isSameState ? shippingConfig.sameStateCharge : shippingConfig.otherStateCharge;
+  return parseFloat(charge) || 0;
+};
+
 // ─── Place order ──────────────────────────────────────────────────────────────
 export const placeOrder = async (orderData, user) => {
   const userId = user?.id || getStoredUser()?.id;

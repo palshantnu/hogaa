@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const SiteSetting = require('../../models/SiteSetting');
 const { DEFAULT_APP_PROMO } = require('../../utils/appPromoDefaults');
+const { getShippingSettings } = require('../../utils/shipping');
 
 // GET marquee messages (public)
 router.get('/marquee', async (req, res) => {
@@ -35,6 +36,16 @@ router.get('/app-promo', async (req, res) => {
         res.json({ success: true, promo: DEFAULT_APP_PROMO });
     } catch (error) {
         res.status(500).json({ success: false, promo: DEFAULT_APP_PROMO });
+    }
+});
+
+// GET shipping charge config (same-state vs other-state) - public
+router.get('/shipping-charge', async (req, res) => {
+    try {
+        const shipping = await getShippingSettings();
+        res.json({ success: true, shipping });
+    } catch (error) {
+        res.status(500).json({ success: false, message: 'Server error' });
     }
 });
 
