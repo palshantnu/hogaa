@@ -14,6 +14,7 @@ const ProductVariation = require('../models/ProductVariation');
 const { ProductVariationAttribute } = require('../models');
 const fs = require('fs');
 const path = require('path');
+const { splitGstRate } = require('../utils/gst');
 
 
 const sequelize = require('../config/db');
@@ -1071,7 +1072,7 @@ updateAttribute: async (req, res) => {
         try {
             const {
                 name, description, short_description, category_id, slug: customSlug,
-                price, compare_price, stock, cgst_rate, sgst_rate, igst_rate,
+                price, compare_price, stock, gst_rate,
                 product_type, cost_per_item, weight, is_featured,
                 is_online, sequence
             } = req.body;
@@ -1095,8 +1096,11 @@ updateAttribute: async (req, res) => {
                 slug = `${slug}-${Date.now()}`;
             }
 
-            // Calculate base_price (price without GST)
-            const totalGstRate = (parseFloat(cgst_rate) || 0) + (parseFloat(sgst_rate) || 0) + (parseFloat(igst_rate) || 0);
+            // Calculate base_price (price without GST). CGST/SGST/IGST are derived from
+            // this single rate; which pair actually applies is decided per-order based on
+            // the shipping state (see utils/gst.js), not here.
+            const totalGstRate = parseFloat(gst_rate) || 0;
+            const { cgst_rate, sgst_rate, igst_rate } = splitGstRate(totalGstRate);
             const finalPrice = parseFloat(price) || 0;
             let basePrice = finalPrice;
 
@@ -1123,9 +1127,9 @@ updateAttribute: async (req, res) => {
                 base_price: basePrice,
                 compare_price: compare_price ? parseFloat(compare_price) : null,
                 stock: product_type === 'simple' ? (parseInt(stock) || 0) : 0,
-                cgst_rate: parseFloat(cgst_rate) || 0,
-                sgst_rate: parseFloat(sgst_rate) || 0,
-                igst_rate: parseFloat(igst_rate) || 0,
+                cgst_rate,
+                sgst_rate,
+                igst_rate,
                 cost_per_item: cost_per_item ? parseFloat(cost_per_item) : null,
                 weight: weight ? parseFloat(weight) : null,
                 is_online: is_online === 'true' || is_online === 'on',
@@ -1146,7 +1150,8 @@ updateAttribute: async (req, res) => {
                     const varOnlineRetailers = buildRetailers(variation.retailers, req.files, `var_online_img_${index}_`);
 
                     // Calculate variation base_price
-                    const variationTotalGst = (parseFloat(variation.cgst_rate) || 0) + (parseFloat(variation.sgst_rate) || 0) + (parseFloat(variation.igst_rate) || 0);
+                    const variationTotalGst = parseFloat(variation.gst_rate) || 0;
+                    const variationGstRates = splitGstRate(variationTotalGst);
                     const variationFinalPrice = parseFloat(variation.price) || 0;
                     let variationBasePrice = variationFinalPrice;
 
@@ -1163,9 +1168,9 @@ updateAttribute: async (req, res) => {
                         stock: parseInt(variation.stock) || 0,
                         images: variationImages,
                         videos: variationVideos,
-                        cgst_rate: parseFloat(variation.cgst_rate) || 0,
-                        sgst_rate: parseFloat(variation.sgst_rate) || 0,
-                        igst_rate: parseFloat(variation.igst_rate) || 0,
+                        cgst_rate: variationGstRates.cgst_rate,
+                        sgst_rate: variationGstRates.sgst_rate,
+                        igst_rate: variationGstRates.igst_rate,
                         cost_per_item: variation.cost_per_item ? parseFloat(variation.cost_per_item) : null,
                         weight: variation.weight ? parseFloat(variation.weight) : null,
                         is_online: variation.is_online === 'true' || variation.is_online === 'on',
@@ -1303,7 +1308,7 @@ updateAttribute: async (req, res) => {
 
         const {
             name, description, short_description, category_id,
-            price, compare_price, stock, cgst_rate, sgst_rate, igst_rate,
+            price, compare_price, stock, gst_rate,
             product_type, cost_per_item, weight, is_featured,
             existing_images,
             existing_videos,
@@ -1345,7 +1350,8 @@ updateAttribute: async (req, res) => {
         const onlineRetailers = buildRetailers(req.body.retailers, req.files, 'online_img_');
 
         // Calculate base_price for simple product
-        const totalGstRate = (parseFloat(cgst_rate) || 0) + (parseFloat(sgst_rate) || 0) + (parseFloat(igst_rate) || 0);
+        const totalGstRate = parseFloat(gst_rate) || 0;
+        const { cgst_rate, sgst_rate, igst_rate } = splitGstRate(totalGstRate);
         const finalPrice = parseFloat(price) || 0;
         let basePrice = finalPrice;
 
@@ -1382,9 +1388,9 @@ updateAttribute: async (req, res) => {
             updateData.base_price = basePrice;
             updateData.compare_price = compare_price ? parseFloat(compare_price) : null;
             updateData.stock = parseInt(stock) || 0;
-            updateData.cgst_rate = parseFloat(cgst_rate) || 0;
-            updateData.sgst_rate = parseFloat(sgst_rate) || 0;
-            updateData.igst_rate = parseFloat(igst_rate) || 0;
+            updateData.cgst_rate = cgst_rate;
+            updateData.sgst_rate = sgst_rate;
+            updateData.igst_rate = igst_rate;
             updateData.cost_per_item = cost_per_item ? parseFloat(cost_per_item) : null;
             updateData.weight = weight ? parseFloat(weight) : null;
         }
@@ -1448,7 +1454,8 @@ updateAttribute: async (req, res) => {
                     const varOnlineRetailers = buildRetailers(variation.retailers, req.files, `var_online_img_${index}_`);
 
                     // Calculate variation base_price
-                    const variationTotalGst = (parseFloat(variation.cgst_rate) || 0) + (parseFloat(variation.sgst_rate) || 0) + (parseFloat(variation.igst_rate) || 0);
+                    const variationTotalGst = parseFloat(variation.gst_rate) || 0;
+                    const variationGstRates = splitGstRate(variationTotalGst);
                     const variationFinalPrice = parseFloat(variation.price) || 0;
                     let variationBasePrice = variationFinalPrice;
 
@@ -1469,9 +1476,9 @@ updateAttribute: async (req, res) => {
                                 stock: parseInt(variation.stock) || 0,
                                 images: variationImages,
                                 videos: variationVideos,
-                                cgst_rate: parseFloat(variation.cgst_rate) || 0,
-                                sgst_rate: parseFloat(variation.sgst_rate) || 0,
-                                igst_rate: parseFloat(variation.igst_rate) || 0,
+                                cgst_rate: variationGstRates.cgst_rate,
+                                sgst_rate: variationGstRates.sgst_rate,
+                                igst_rate: variationGstRates.igst_rate,
                                 cost_per_item: variation.cost_per_item ? parseFloat(variation.cost_per_item) : null,
                                 weight: variation.weight ? parseFloat(variation.weight) : null,
                                 is_online: variation.is_online === 'true' || variation.is_online === 'on',
@@ -1488,9 +1495,9 @@ updateAttribute: async (req, res) => {
                             stock: parseInt(variation.stock) || 0,
                             images: variationImages,
                             videos: variationVideos,
-                            cgst_rate: parseFloat(variation.cgst_rate) || 0,
-                            sgst_rate: parseFloat(variation.sgst_rate) || 0,
-                            igst_rate: parseFloat(variation.igst_rate) || 0,
+                            cgst_rate: variationGstRates.cgst_rate,
+                            sgst_rate: variationGstRates.sgst_rate,
+                            igst_rate: variationGstRates.igst_rate,
                             cost_per_item: variation.cost_per_item ? parseFloat(variation.cost_per_item) : null,
                             weight: variation.weight ? parseFloat(variation.weight) : null,
                             is_online: variation.is_online === 'true' || variation.is_online === 'on',

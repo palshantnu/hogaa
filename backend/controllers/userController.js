@@ -3,7 +3,8 @@ const { Op } = require('sequelize');
 const bcrypt = require('bcrypt');
 const crypto = require('crypto');
 const firebaseAdmin = require('../firebase/firebaseAdmin');
-const { calculateShippingCharge } = require('../utils/shipping');
+const { calculateShippingCharge, getShippingSettings } = require('../utils/shipping');
+const { isSameStateAsBusiness, statesMatch, calculateGstAmounts } = require('../utils/gst');
 
 async function updateCartTotals(cartId) {
     const cartItems = await CartItem.findAll({
@@ -1169,23 +1170,16 @@ getProductById: async (req, res) => {
             subtotal += itemTotal;
 
             // Get GST rates from variation or product
-            let cgstRate = 0, sgstRate = 0, igstRate = 0;
-            
-            if (item.variation) {
-                cgstRate = parseFloat(item.variation.cgst_rate) || 0;
-                sgstRate = parseFloat(item.variation.sgst_rate) || 0;
-                igstRate = parseFloat(item.variation.igst_rate) || 0;
-            } else if (item.product) {
-                cgstRate = parseFloat(item.product.cgst_rate) || 0;
-                sgstRate = parseFloat(item.product.sgst_rate) || 0;
-                igstRate = parseFloat(item.product.igst_rate) || 0;
-            }
+            const rates = item.variation
+                ? item.variation
+                : (item.product || {});
 
-            // Calculate GST amounts for this item
-            const itemCgst = (itemTotal * cgstRate) / 100;
-            const itemSgst = (itemTotal * sgstRate) / 100;
-            const itemIgst = (itemTotal * igstRate) / 100;
-            
+            // No shipping address is known yet at this stage, so the cart preview
+            // shows the same-state (CGST+SGST) split; the real split is locked in
+            // at checkout using the actual shipping state (see createCheckoutOrder).
+            const { cgstAmount: itemCgst, sgstAmount: itemSgst, igstAmount: itemIgst } =
+                calculateGstAmounts(itemTotal, rates, true);
+
             totalCgst += itemCgst;
             totalSgst += itemSgst;
             totalIgst += itemIgst;
@@ -1234,9 +1228,9 @@ getProductById: async (req, res) => {
                 variation_name: variationName,
                 variation_attributes: variationAttributes,
                 gst: {
-                    cgst_rate: cgstRate,
-                    sgst_rate: sgstRate,
-                    igst_rate: igstRate,
+                    cgst_rate: parseFloat(rates.cgst_rate) || 0,
+                    sgst_rate: parseFloat(rates.sgst_rate) || 0,
+                    igst_rate: parseFloat(rates.igst_rate) || 0,
                     cgst_amount: itemCgst,
                     sgst_amount: itemSgst,
                     igst_amount: itemIgst
@@ -1597,49 +1591,45 @@ getProductById: async (req, res) => {
             shipping_phone: shippingDetails.phone
         });
 
+        const orderIsSameState = await isSameStateAsBusiness(shippingDetails.state);
+
         for (const item of items) {
-            let product, variation, price, cgst_rate, sgst_rate, igst_rate, variationName = null;
+            let product, variation, price, rates, variationName = null;
             let productSku = null;
-            
+
             if (item.variation_id) {
                 variation = await ProductVariation.findByPk(item.variation_id);
                 product = await Product.findByPk(item.id);
                 price = variation.price;
-                cgst_rate = parseFloat(variation.cgst_rate) || 0;
-                sgst_rate = parseFloat(variation.sgst_rate) || 0;
-                igst_rate = parseFloat(variation.igst_rate) || 0;
+                rates = variation;
                 productSku = variation.sku || product.sku;
-                
+
                 // Get variation attributes for name
                 const variationAttributes = await ProductVariationAttribute.findAll({
                     where: { variation_id: item.variation_id },
                     include: [{ model: AttributeValue, as: 'attribute_value' }]
                 });
                 variationName = variationAttributes.map(va => va.attribute_value.value).join(', ');
-                
-                await variation.update({ 
-                    stock: variation.stock - item.quantity 
+
+                await variation.update({
+                    stock: variation.stock - item.quantity
                 });
             } else {
                 product = await Product.findByPk(item.id);
                 price = item.price;
-                cgst_rate = parseFloat(product.cgst_rate) || 0;
-                sgst_rate = parseFloat(product.sgst_rate) || 0;
-                igst_rate = parseFloat(product.igst_rate) || 0;
+                rates = product;
                 productSku = product.sku;
-                
-                await product.update({ 
+
+                await product.update({
                     stock: product.stock - item.quantity,
                     sold_count: (product.sold_count || 0) + item.quantity
                 });
             }
-            
-            // Calculate GST amounts
+
+            // Calculate GST amounts - CGST+SGST for same-state orders, IGST for other-state
             const itemTotal = parseFloat(price) * item.quantity;
-            const cgstAmount = (itemTotal * cgst_rate) / 100;
-            const sgstAmount = (itemTotal * sgst_rate) / 100;
-            const igstAmount = (itemTotal * igst_rate) / 100;
-            
+            const { cgstAmount, sgstAmount, igstAmount } = calculateGstAmounts(itemTotal, rates, orderIsSameState);
+
             await OrderItem.create({
                 order_id: order.id,
                 product_id: item.id,
@@ -1693,6 +1683,8 @@ getMyOrders: async (req, res) => {
                 message: 'Please login first'
             });
         }
+
+        const shippingSettings = await getShippingSettings();
 
         const orders = await Order.findAll({
             where: { user_id: user_id },
@@ -1748,24 +1740,14 @@ getMyOrders: async (req, res) => {
                 if (item.product && item.product.images && item.product.images.length > 0) {
                     productImage = item.product.images[0];
                 }
-                // If GST not calculated, calculate now
+                // If GST not calculated (legacy orders), calculate now using the
+                // order's actual shipping state to pick CGST+SGST vs IGST.
                 if (cgstAmount === 0 && sgstAmount === 0 && igstAmount === 0) {
                     const itemTotal = parseFloat(item.total);
-                    let cgstRate = 0, sgstRate = 0, igstRate = 0;
-                    
-                    if (item.variation) {
-                        cgstRate = parseFloat(item.variation.cgst_rate) || 0;
-                        sgstRate = parseFloat(item.variation.sgst_rate) || 0;
-                        igstRate = parseFloat(item.variation.igst_rate) || 0;
-                    } else if (item.product) {
-                        cgstRate = parseFloat(item.product.cgst_rate) || 0;
-                        sgstRate = parseFloat(item.product.sgst_rate) || 0;
-                        igstRate = parseFloat(item.product.igst_rate) || 0;
-                    }
-                    
-                    cgstAmount = (itemTotal * cgstRate) / 100;
-                    sgstAmount = (itemTotal * sgstRate) / 100;
-                    igstAmount = (itemTotal * igstRate) / 100;
+                    const rates = item.variation || item.product || {};
+                    const orderIsSameState = statesMatch(shippingSettings.homeState, order.shipping_state);
+
+                    ({ cgstAmount, sgstAmount, igstAmount } = calculateGstAmounts(itemTotal, rates, orderIsSameState));
                 }
                 
                 // Get variation name if not stored
