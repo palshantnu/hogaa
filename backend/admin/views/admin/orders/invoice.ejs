@@ -62,7 +62,6 @@
         <div class="col-md-6 addr-block">
             <h6>Billed To</h6>
             <div><%= order.shipping_name || (order.user ? order.user.name : 'Guest') %></div>
-            <div><%= order.user ? order.user.email : order.shipping_email %></div>
             <div><%= order.user ? order.user.mobile : order.shipping_phone %></div>
         </div>
         <div class="col-md-6 addr-block">
