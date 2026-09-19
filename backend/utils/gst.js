@@ -1,6 +1,9 @@
 const { getShippingSettings } = require('./shipping');
 
-// A product/variation stores one total GST rate as cgst_rate = sgst_rate = total/2
+// Store-wide GST rate applied to every product/variation - not entered per product.
+const TOTAL_GST_RATE = 18;
+
+// A product/variation stores this total GST rate as cgst_rate = sgst_rate = total/2
 // and igst_rate = total (see adminController addProduct/updateProduct). Which pair
 // actually applies is decided per-order from the shipping state, not at product save time.
 
@@ -38,4 +41,4 @@ function calculateGstAmounts(itemTotal, rates, sameState) {
     };
 }
 
-module.exports = { isSameStateAsBusiness, statesMatch, splitGstRate, calculateGstAmounts };
+module.exports = { TOTAL_GST_RATE, isSameStateAsBusiness, statesMatch, splitGstRate, calculateGstAmounts };

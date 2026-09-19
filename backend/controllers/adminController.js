@@ -14,7 +14,7 @@ const ProductVariation = require('../models/ProductVariation');
 const { ProductVariationAttribute } = require('../models');
 const fs = require('fs');
 const path = require('path');
-const { splitGstRate } = require('../utils/gst');
+const { splitGstRate, TOTAL_GST_RATE } = require('../utils/gst');
 
 
 const sequelize = require('../config/db');
@@ -1058,7 +1058,8 @@ updateAttribute: async (req, res) => {
                 globalAttributes,
                 nextSequence: productCount + 1,  // pre-fill: next number after the last product
                 variations: [],  // Add empty array for add mode
-                productAttributes: []  // Add empty array for add mode
+                productAttributes: [],  // Add empty array for add mode
+                defaultGstRate: TOTAL_GST_RATE
             });
         } catch (error) {
             console.error('Add product form error:', error);
@@ -1072,7 +1073,7 @@ updateAttribute: async (req, res) => {
         try {
             const {
                 name, description, short_description, category_id, slug: customSlug,
-                price, compare_price, stock, gst_rate,
+                price, compare_price, stock,
                 product_type, cost_per_item, weight, is_featured,
                 is_online, sequence
             } = req.body;
@@ -1096,10 +1097,10 @@ updateAttribute: async (req, res) => {
                 slug = `${slug}-${Date.now()}`;
             }
 
-            // Calculate base_price (price without GST). CGST/SGST/IGST are derived from
-            // this single rate; which pair actually applies is decided per-order based on
+            // GST is a fixed store-wide rate, not entered per product. CGST/SGST/IGST are
+            // derived from it; which pair actually applies is decided per-order based on
             // the shipping state (see utils/gst.js), not here.
-            const totalGstRate = parseFloat(gst_rate) || 0;
+            const totalGstRate = TOTAL_GST_RATE;
             const { cgst_rate, sgst_rate, igst_rate } = splitGstRate(totalGstRate);
             const finalPrice = parseFloat(price) || 0;
             let basePrice = finalPrice;
@@ -1149,8 +1150,8 @@ updateAttribute: async (req, res) => {
                     compressVideos(variationVideos, '../public/uploads/products/variations/');
                     const varOnlineRetailers = buildRetailers(variation.retailers, req.files, `var_online_img_${index}_`);
 
-                    // Calculate variation base_price
-                    const variationTotalGst = parseFloat(variation.gst_rate) || 0;
+                    // Calculate variation base_price (same fixed store-wide GST rate)
+                    const variationTotalGst = TOTAL_GST_RATE;
                     const variationGstRates = splitGstRate(variationTotalGst);
                     const variationFinalPrice = parseFloat(variation.price) || 0;
                     let variationBasePrice = variationFinalPrice;
@@ -1289,7 +1290,8 @@ updateAttribute: async (req, res) => {
                 nextSequence: product.sequence || 0,
                 variations: variations,
                 productAttributes: productAttributes,
-                hasVariations: product.has_variations
+                hasVariations: product.has_variations,
+                defaultGstRate: TOTAL_GST_RATE
             });
         } catch (error) {
             console.error('Edit product form error:', error);
@@ -1308,7 +1310,7 @@ updateAttribute: async (req, res) => {
 
         const {
             name, description, short_description, category_id,
-            price, compare_price, stock, gst_rate,
+            price, compare_price, stock,
             product_type, cost_per_item, weight, is_featured,
             existing_images,
             existing_videos,
@@ -1349,8 +1351,8 @@ updateAttribute: async (req, res) => {
 
         const onlineRetailers = buildRetailers(req.body.retailers, req.files, 'online_img_');
 
-        // Calculate base_price for simple product
-        const totalGstRate = parseFloat(gst_rate) || 0;
+        // Calculate base_price for simple product (fixed store-wide GST rate)
+        const totalGstRate = TOTAL_GST_RATE;
         const { cgst_rate, sgst_rate, igst_rate } = splitGstRate(totalGstRate);
         const finalPrice = parseFloat(price) || 0;
         let basePrice = finalPrice;
@@ -1453,8 +1455,8 @@ updateAttribute: async (req, res) => {
 
                     const varOnlineRetailers = buildRetailers(variation.retailers, req.files, `var_online_img_${index}_`);
 
-                    // Calculate variation base_price
-                    const variationTotalGst = parseFloat(variation.gst_rate) || 0;
+                    // Calculate variation base_price (same fixed store-wide GST rate)
+                    const variationTotalGst = TOTAL_GST_RATE;
                     const variationGstRates = splitGstRate(variationTotalGst);
                     const variationFinalPrice = parseFloat(variation.price) || 0;
                     let variationBasePrice = variationFinalPrice;

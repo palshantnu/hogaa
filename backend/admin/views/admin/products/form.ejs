@@ -246,11 +246,11 @@
                             <div class="row">
                                 <div class="col-md-4 mb-3">
                                     <label class="form-label">GST Rate (%)</label>
-                                    <input type="number" step="0.01" name="gst_rate" id="simple_gst" class="form-control" value="<%= product ? (parseFloat(product.cgst_rate || 0) + parseFloat(product.sgst_rate || 0)) : 0 %>">
+                                    <input type="number" step="0.01" id="simple_gst" class="form-control" value="<%= defaultGstRate %>" readonly disabled>
                                 </div>
                             </div>
                             <div class="alert alert-info mt-2">
-                                <small><i class="fas fa-info-circle"></i> Base Price is auto-calculated: Price ÷ (1 + GST%). CGST+SGST (same state) or IGST (other state) is applied automatically per order based on the shipping address.</small>
+                                <small><i class="fas fa-info-circle"></i> GST is fixed at <%= defaultGstRate %>% storewide. Base Price is auto-calculated: Price ÷ (1 + GST%). CGST+SGST (same state) or IGST (other state) is applied automatically per order based on the shipping address.</small>
                             </div>
                         </div>
                         
@@ -308,14 +308,16 @@
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
+// GST is a fixed store-wide rate (see utils/gst.js TOTAL_GST_RATE) - not entered per product.
+var DEFAULT_GST_RATE = <%= defaultGstRate %>;
+
 // Calculate Base Price function
 function calculateBasePrice() {
     var price = parseFloat($('#simple_price').val()) || 0;
-    var totalGst = parseFloat($('#simple_gst').val()) || 0;
     var basePrice = price;
 
-    if (totalGst > 0) {
-        basePrice = (price * 100) / (100 + totalGst);
+    if (DEFAULT_GST_RATE > 0) {
+        basePrice = (price * 100) / (100 + DEFAULT_GST_RATE);
     }
 
     $('#base_price_display').val('₹' + basePrice.toFixed(2));
@@ -325,11 +327,10 @@ function calculateBasePrice() {
 // For variations
 function calculateVariationBasePrice(index) {
     var price = parseFloat($(`input[name="variations[${index}][price]"]`).val()) || 0;
-    var totalGst = parseFloat($(`input[name="variations[${index}][gst_rate]"]`).val()) || 0;
     var basePrice = price;
 
-    if (totalGst > 0) {
-        basePrice = (price * 100) / (100 + totalGst);
+    if (DEFAULT_GST_RATE > 0) {
+        basePrice = (price * 100) / (100 + DEFAULT_GST_RATE);
     }
 
     $(`#base_price_display_${index}`).text('₹' + basePrice.toFixed(2));
@@ -363,7 +364,7 @@ $('#productName').on('keyup', function() {
 });
 
 // Bind events for simple product
-$('#simple_price, #simple_gst').on('input', function() {
+$('#simple_price').on('input', function() {
     calculateBasePrice();
 });
 
@@ -794,7 +795,7 @@ function buildVariationMatrix(attributeValues) {
         html += `<td><input type="number" step="0.01" name="variations[${idx}][price]" class="form-control form-control-sm" required oninput="calculateVariationBasePrice(${idx})"></td>`;
         html += `<td><input type="number" step="0.01" name="variations[${idx}][compare_price]" class="form-control form-control-sm"></td>`;
         html += `<td><input type="number" name="variations[${idx}][stock]" class="form-control form-control-sm" value="0"></td>`;
-        html += `<td><input type="number" step="0.01" name="variations[${idx}][gst_rate]" class="form-control form-control-sm" value="0" oninput="calculateVariationBasePrice(${idx})"></td>`;
+        html += `<td><input type="number" step="0.01" class="form-control form-control-sm variation-gst" value="${DEFAULT_GST_RATE}" readonly disabled></td>`;
         html += `<td><input type="file" name="variation_images_${idx}" class="form-control form-control-sm" accept="image/*" multiple>
                  <div class="variation-image-preview d-flex flex-wrap gap-1 mt-2"></div></td>`;
         html += `<td><input type="file" name="variation_videos_${idx}" class="form-control form-control-sm" accept="video/*,image/gif" multiple>
@@ -926,8 +927,7 @@ function buildVariationMatrix(attributeValues) {
             html += `<td><input type="number" step="0.01" name="variations[${idx}][price]" class="form-control form-control-sm" value="${existingVar ? existingVar.price : ''}" required oninput="calculateVariationBasePrice(${idx})"></td>`;
             html += `<td><input type="number" step="0.01" name="variations[${idx}][compare_price]" class="form-control form-control-sm" value="${existingVar ? (existingVar.compare_price || '') : ''}"></td>`;
             html += `<td><input type="number" name="variations[${idx}][stock]" class="form-control form-control-sm" value="${existingVar ? existingVar.stock : 0}"></td>`;
-            var existingVarGst = existingVar ? (parseFloat(existingVar.cgst_rate || 0) + parseFloat(existingVar.sgst_rate || 0)) : 0;
-            html += `<td><input type="number" step="0.01" name="variations[${idx}][gst_rate]" class="form-control form-control-sm" value="${existingVarGst}" oninput="calculateVariationBasePrice(${idx})"></td>`;
+            html += `<td><input type="number" step="0.01" class="form-control form-control-sm variation-gst" value="${DEFAULT_GST_RATE}" readonly disabled></td>`;
 
             // Images column with thumbnails
             html += `<td>`;
