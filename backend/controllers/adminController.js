@@ -2039,7 +2039,8 @@ getOrders: async (req, res) => {
 
             res.render('admin/orders/invoice', {
                 title: `Invoice #${order.order_number}`,
-                order
+                order,
+                gstRate: TOTAL_GST_RATE
             });
         } catch (error) {
             console.error('Get order invoice error:', error);

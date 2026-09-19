@@ -101,11 +101,14 @@
             <tbody>
                 <% let totalCgst = 0, totalSgst = 0, totalIgst = 0; %>
                 <% if (order.items && order.items.length > 0) { %>
+                    <% const rate = parseFloat(gstRate) || 0; %>
                     <% order.items.forEach((item, i) => {
                         const cgst = parseFloat(item.cgst_amount) || 0;
                         const sgst = parseFloat(item.sgst_amount) || 0;
                         const igst = parseFloat(item.igst_amount) || 0;
                         totalCgst += cgst; totalSgst += sgst; totalIgst += igst;
+                        // item.price is stored GST-inclusive; strip the GST out for display.
+                        const unitPriceExGst = rate > 0 ? parseFloat(item.price) * 100 / (100 + rate) : parseFloat(item.price);
                     %>
                     <tr>
                         <td><%= i + 1 %></td>
@@ -114,7 +117,7 @@
                             <% if (item.variation_name) { %><br><small class="text-muted"><%= item.variation_name %></small><% } %>
                         </td>
                         <td class="text-end"><%= item.quantity %></td>
-                        <td class="text-end">₹<%= parseFloat(item.price).toLocaleString('en-IN', { minimumFractionDigits: 2 }) %></td>
+                        <td class="text-end">₹<%= unitPriceExGst.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) %></td>
                         <td class="text-end">₹<%= cgst.toLocaleString('en-IN', { minimumFractionDigits: 2 }) %></td>
                         <td class="text-end">₹<%= sgst.toLocaleString('en-IN', { minimumFractionDigits: 2 }) %></td>
                         <td class="text-end">₹<%= igst.toLocaleString('en-IN', { minimumFractionDigits: 2 }) %></td>
