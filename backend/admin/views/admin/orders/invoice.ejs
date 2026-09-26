@@ -103,12 +103,21 @@
                 <% if (order.items && order.items.length > 0) { %>
                     <% const rate = parseFloat(gstRate) || 0; %>
                     <% order.items.forEach((item, i) => {
-                        const cgst = parseFloat(item.cgst_amount) || 0;
-                        const sgst = parseFloat(item.sgst_amount) || 0;
-                        const igst = parseFloat(item.igst_amount) || 0;
-                        totalCgst += cgst; totalSgst += sgst; totalIgst += igst;
-                        // item.price is stored GST-inclusive; strip the GST out for display.
+                        const cgstStored = parseFloat(item.cgst_amount) || 0;
+                        const sgstStored = parseFloat(item.sgst_amount) || 0;
+                        const igstStored = parseFloat(item.igst_amount) || 0;
+                        // item.price/item.total are stored GST-inclusive; strip the GST out for
+                        // display, then re-split the same tax portion so Unit Price + tax = Amount.
                         const unitPriceExGst = rate > 0 ? parseFloat(item.price) * 100 / (100 + rate) : parseFloat(item.price);
+                        const lineTax = parseFloat(item.total) - (unitPriceExGst * item.quantity);
+                        let cgst = 0, sgst = 0, igst = 0;
+                        if (igstStored > 0) {
+                            igst = lineTax;
+                        } else if (cgstStored > 0 || sgstStored > 0) {
+                            cgst = lineTax / 2;
+                            sgst = lineTax / 2;
+                        }
+                        totalCgst += cgst; totalSgst += sgst; totalIgst += igst;
                     %>
                     <tr>
                         <td><%= i + 1 %></td>
@@ -118,9 +127,9 @@
                         </td>
                         <td class="text-end"><%= item.quantity %></td>
                         <td class="text-end">₹<%= unitPriceExGst.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) %></td>
-                        <td class="text-end">₹<%= cgst.toLocaleString('en-IN', { minimumFractionDigits: 2 }) %></td>
-                        <td class="text-end">₹<%= sgst.toLocaleString('en-IN', { minimumFractionDigits: 2 }) %></td>
-                        <td class="text-end">₹<%= igst.toLocaleString('en-IN', { minimumFractionDigits: 2 }) %></td>
+                        <td class="text-end">₹<%= cgst.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) %></td>
+                        <td class="text-end">₹<%= sgst.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) %></td>
+                        <td class="text-end">₹<%= igst.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) %></td>
                         <td class="text-end">₹<%= parseFloat(item.total).toLocaleString('en-IN', { minimumFractionDigits: 2 }) %></td>
                     </tr>
                     <% }) %>
@@ -142,19 +151,19 @@
                 <% if (totalCgst > 0) { %>
                 <tr>
                     <td>Total CGST</td>
-                    <td class="text-end">₹<%= totalCgst.toLocaleString('en-IN', { minimumFractionDigits: 2 }) %></td>
+                    <td class="text-end">₹<%= totalCgst.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) %></td>
                 </tr>
                 <% } %>
                 <% if (totalSgst > 0) { %>
                 <tr>
                     <td>Total SGST</td>
-                    <td class="text-end">₹<%= totalSgst.toLocaleString('en-IN', { minimumFractionDigits: 2 }) %></td>
+                    <td class="text-end">₹<%= totalSgst.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) %></td>
                 </tr>
                 <% } %>
                 <% if (totalIgst > 0) { %>
                 <tr>
                     <td>Total IGST</td>
-                    <td class="text-end">₹<%= totalIgst.toLocaleString('en-IN', { minimumFractionDigits: 2 }) %></td>
+                    <td class="text-end">₹<%= totalIgst.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) %></td>
                 </tr>
                 <% } %>
                 <% if (order.shipping_charge > 0) { %>
