@@ -61,6 +61,9 @@ app.use('/api/shop-the-look', require('./routes/api/shopTheLook'));
 app.use('/api/hogaa-in-motion', require('./routes/api/hogaaInMotion'));
 app.use('/api/settings', require('./routes/api/settings'));
 
+// ========== SEO ==========
+app.use('/', require('./routes/sitemap'));
+
 
 // ========== ADMIN ROUTES ==========
 app.use('/admin/auth', require('./routes/admin/auth'));

@@ -1,0 +1,16 @@
+User-agent: *
+Allow: /
+Disallow: /cart
+Disallow: /checkout
+Disallow: /wishlist
+Disallow: /orders
+Disallow: /profile
+Disallow: /order-success
+Disallow: /payment-success
+Disallow: /payment-failed
+Disallow: /payment-cancelled
+Disallow: /login
+Disallow: /signup
+Disallow: /search
+
+Sitemap: https://hogaacosmetics.com/sitemap.xml
