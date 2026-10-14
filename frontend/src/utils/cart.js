@@ -1,4 +1,5 @@
 // utils/cart.js
+import { trackPixel } from './metaPixel';
 const API = 'https://admin.hogaacosmetics.com';
 const GUEST_CART_KEY = 'guest_cart';
 
@@ -81,6 +82,16 @@ export const getCart = async (user) => {
   }
 };
 
+const trackAddToCart = (product, quantity) => {
+  trackPixel('AddToCart', {
+    content_ids: [String(product.id)],
+    content_name: product.name,
+    content_type: 'product',
+    value: (parseFloat(product.price) || 0) * quantity,
+    currency: 'INR'
+  });
+};
+
 // ─── Add to cart ─────────────────────────────────────────────────────────────
 export const addToCart = async (product, quantity = 1, user) => {
   const userId = user?.id || getStoredUser()?.id;
@@ -110,6 +121,7 @@ export const addToCart = async (product, quantity = 1, user) => {
       });
     }
     saveGuestCartItems(items);
+    trackAddToCart(product, quantity);
     return { success: true, message: 'Added to cart' };
   }
 
@@ -123,7 +135,10 @@ export const addToCart = async (product, quantity = 1, user) => {
       body: JSON.stringify(body)
     });
     const data = await res.json();
-    if (data.success) window.dispatchEvent(new Event('cartUpdated'));
+    if (data.success) {
+      window.dispatchEvent(new Event('cartUpdated'));
+      trackAddToCart(product, quantity);
+    }
     return data.success
       ? { success: true, message: data.message || 'Added to cart' }
       : { success: false, message: data.message || 'Failed to add' };

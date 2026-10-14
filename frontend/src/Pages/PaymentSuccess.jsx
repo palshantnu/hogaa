@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { CheckCircle, Package, Truck, Clock, CreditCard, Home, ShoppingBag } from 'lucide-react';
 import "./Payment.css";
+import { trackPendingPurchase } from "../utils/metaPixel";
 const PaymentSuccess = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
@@ -11,6 +12,10 @@ const PaymentSuccess = () => {
 
   const orderId = searchParams.get('order_id');
   const txnid = searchParams.get('txnid');
+
+  useEffect(() => {
+    if (orderId) trackPendingPurchase(orderId);
+  }, [orderId]);
 
   useEffect(() => {
     const fetchOrderStatus = async () => {

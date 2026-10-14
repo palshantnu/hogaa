@@ -7,6 +7,7 @@ import Navbar from './Components/Navbar'
 import Footer from './Components/Footer'
 import ScrollTop from './Components/ScrollTop'
 import ProtectedRoute from './Components/ProtectedRoute';
+import MetaPixelTracker from './Components/MetaPixelTracker';
 
 // Home Sections
 import Hero from './Components/Hero'
@@ -68,6 +69,7 @@ function App() {
   return (
     <AuthProvider>
       <div className="App">
+        <MetaPixelTracker />
         <Routes>
           <Route path="/" element={
             <MainLayout>

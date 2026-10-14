@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { getCart, placeOrder, fetchShippingConfig, calculateShippingCharge } from "../utils/cart";
 import { useAuth } from "../context/AuthContext";
+import { trackPixel, savePendingPurchase } from "../utils/metaPixel";
 import {
   Truck,
   Shield,
@@ -55,6 +56,20 @@ const Checkout = () => {
   });
   const [orderResult, setOrderResult] = useState(null);
   const [shippingConfig, setShippingConfig] = useState(null);
+
+  // Meta Pixel: InitiateCheckout once the items are loaded
+  const checkoutTracked = useRef(false);
+  useEffect(() => {
+    if (loading || checkoutTracked.current || cart.length === 0) return;
+    checkoutTracked.current = true;
+    trackPixel('InitiateCheckout', {
+      content_ids: cart.map(item => String(item.product_id || item.id)),
+      content_type: 'product',
+      num_items: cart.reduce((n, item) => n + (Number(item.quantity) || 0), 0),
+      value: Number(cartTotals.subtotal) || 0,
+      currency: 'INR'
+    });
+  }, [loading, cart, cartTotals.subtotal]);
 
   // Load shipping charge config (same state / other state) once
   useEffect(() => {
@@ -288,6 +303,11 @@ console.log('cart',cart);
 
     if (result.success) {
       setOrderResult(result.order);
+      savePendingPurchase(
+        result.order.id,
+        result.order.total ?? cartTotals.subtotal,
+        cart.map(item => String(item.product_id || item.id))
+      );
       await initiatePayUPayment(result.order);
     } else {
       alert(result.message || "Failed to place order");

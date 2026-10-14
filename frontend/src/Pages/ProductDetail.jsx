@@ -3,6 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import "./ProductDetail.css";
 import { addToCart, updateCartItem, removeFromCart, getCart } from "../utils/cart";
 import { useAuth } from "../context/AuthContext";
+import { trackPixel } from "../utils/metaPixel";
 import { 
   Truck, Clock, RefreshCw, Shield,
   CheckCircle, AlertCircle, Minus, Plus, Trash2, ShoppingBag,
@@ -117,6 +118,13 @@ const ProductDetail = () => {
 
         if (data.success) {
           setProduct(data.product);
+          trackPixel('ViewContent', {
+            content_ids: [String(data.product.id)],
+            content_name: data.product.name,
+            content_type: 'product',
+            value: parseFloat(data.product.price) || 0,
+            currency: 'INR'
+          });
           setRelatedProducts(data.related_products || []);
           
           if (data.product.variations && data.product.variations.length > 0) {
